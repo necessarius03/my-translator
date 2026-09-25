@@ -4,7 +4,7 @@
 // my-translator-mobile/src/engines/qwen-realtime-client.ts).
 //
 // Key facts:
-//   - WS URL: dashscope-intl + ?model=qwen3-livetranslate-flash-realtime
+//   - WS URL: dashscope-intl + ?model=qwen3.5-livetranslate-flash-realtime
 //   - Audio in: pcm16 @ 16kHz mono (no resampling — Soniox pipeline native rate)
 //   - Server-VAD only. Manual input_audio_buffer.commit / response.create are
 //     rejected by Live Flash — server segments turns on its own.
@@ -30,8 +30,12 @@ use tauri::State;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
+// `qwen3-livetranslate-flash-realtime` (the original target) is flagged
+// "Retiring" in Model Studio as of 2026-09; `qwen3.5-...` is its successor and
+// is also cheaper ($7.5 vs $10 per 1M audio input tokens). Both are paid — the
+// free preview tier this engine was built against has ended.
 const QWEN_REALTIME_URL: &str =
-    "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=qwen3-livetranslate-flash-realtime";
+    "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=qwen3.5-livetranslate-flash-realtime";
 
 #[derive(Debug, Deserialize)]
 pub struct QwenRealtimeConfig {
@@ -180,10 +184,13 @@ async fn run_session(
         .await
         .map_err(|e| format!("send session.update: {}", e))?;
 
-    let _ = event_ch.send(QwenEvent::Status {
-        state: "ready".into(),
-        message: None,
-    });
+    // "ready" is NOT sent here. Sending session.update only proves the socket
+    // is open — the server can still reject the session straight after (an
+    // account without model entitlement closes with 1007 "Model access
+    // denied"). Reporting connected at this point made the UI flash
+    // "Listening" before every failure. `handle_server_event` promotes the
+    // status on the first real server event instead.
+    let mut ready_sent = false;
 
     // Guard: response.text.done can fire twice for one response when both text
     // and audio_transcript streams complete. With modalities=["text"] this
@@ -213,7 +220,12 @@ async fn run_session(
             msg = ws_stream.next() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => {
-                        handle_server_event(&text, &event_ch, &mut last_done_response_id);
+                        handle_server_event(
+                            &text,
+                            &event_ch,
+                            &mut last_done_response_id,
+                            &mut ready_sent,
+                        );
                     }
                     Some(Ok(Message::Binary(_))) => {}
                     Some(Ok(Message::Close(frame))) => {
@@ -263,6 +275,7 @@ fn handle_server_event(
     text: &str,
     event_ch: &Channel<QwenEvent>,
     last_done_response_id: &mut Option<String>,
+    ready_sent: &mut bool,
 ) {
     let value: serde_json::Value = match serde_json::from_str(text) {
         Ok(v) => v,
@@ -275,6 +288,20 @@ fn handle_server_event(
     };
 
     eprintln!("[qwen-livetranslate] event: {}", evt_type);
+
+    // Events that do NOT prove the session is live: `session.created` arrives
+    // before the server has read our config, and `error` / `session.closed`
+    // are the session failing. Anything else means it is running, so a
+    // missing `session.updated` only delays the label instead of leaving the
+    // UI stuck on "connecting".
+    const NOT_READY: [&str; 3] = ["session.created", "error", "session.closed"];
+    if !*ready_sent && !NOT_READY.contains(&evt_type) {
+        *ready_sent = true;
+        let _ = event_ch.send(QwenEvent::Status {
+            state: "ready".into(),
+            message: None,
+        });
+    }
 
     match evt_type {
         "session.created" | "session.updated" | "response.created" | "response.done" => {}

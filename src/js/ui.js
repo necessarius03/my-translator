@@ -35,6 +35,72 @@ export class TranscriptUI {
         this.currentSpeaker = null; // Track current speaker to detect changes
         this.currentLanguage = null; // Track current language to detect changes
         this.lastConfidence = null; // Last confidence score from Soniox
+        // Whether the source line is shown above each translation in single
+        // view. Driven by the "Show original text" setting.
+        this.showOriginal = true;
+        // Cue subscribers — the subtitle overlay window taps the same stream
+        // the transcript renders from, so it can never drift out of sync with
+        // what the app shows. See onCue().
+        this._cueSubscribers = [];
+    }
+
+    /**
+     * Subscribe to "what line is on screen right now", fired on every render.
+     * The callback gets { src, tgt, provisional }. Subscribers must be cheap —
+     * this runs on every streaming delta.
+     */
+    onCue(fn) {
+        this._cueSubscribers.push(fn);
+        return () => {
+            const i = this._cueSubscribers.indexOf(fn);
+            if (i !== -1) this._cueSubscribers.splice(i, 1);
+        };
+    }
+
+    /**
+     * The newest displayable line. Provisional text wins when present because
+     * it is the live edge of the stream — but WHERE it belongs differs by
+     * engine: Soniox streams source-language ASR, while OpenAI carries a
+     * separate source channel and puts the target in provisionalText.
+     */
+    _currentCue() {
+        let src = '';
+        let tgt = '';
+        let provisional = false;
+
+        for (let i = this.segments.length - 1; i >= 0; i--) {
+            if (this.segments[i].translation) {
+                src = this.segments[i].original || '';
+                tgt = this.segments[i].translation;
+                break;
+            }
+        }
+
+        if (this.provisionalText) {
+            provisional = true;
+            if (this.provider === 'soniox') {
+                // No translation yet for this utterance: show it as the source
+                // line above the last finished translation.
+                src = this.provisionalText;
+            } else {
+                tgt = this.provisionalText;
+                if (this.sourceProvisionalText) src = this.sourceProvisionalText;
+            }
+        }
+
+        return { src, tgt, provisional };
+    }
+
+    _notifyCue() {
+        if (this._cueSubscribers.length === 0) return;
+        const cue = this._currentCue();
+        for (const fn of this._cueSubscribers) {
+            try {
+                fn(cue);
+            } catch (err) {
+                console.error('[TranscriptUI] cue subscriber failed:', err);
+            }
+        }
     }
 
     get provider() {
@@ -57,6 +123,10 @@ export class TranscriptUI {
      */
     configure({ maxLines, showOriginal, fontSize, fontColor, viewMode }) {
         if (maxLines !== undefined) this.maxChars = maxLines * 160;
+        if (showOriginal !== undefined) {
+            this.showOriginal = showOriginal;
+            this._render();
+        }
         if (fontSize !== undefined) {
             this.fontSize = fontSize;
             this.container.style.setProperty('--transcript-font-size', `${fontSize}px`);
@@ -408,6 +478,8 @@ export class TranscriptUI {
         } else {
             this._renderSingle();
         }
+
+        this._notifyCue();
     }
 
     _renderSingle() {
@@ -431,10 +503,17 @@ export class TranscriptUI {
             if (seg.status === 'translated' && seg.translation) {
                 const confidenceClass = (seg.confidence !== null && seg.confidence < 0.7) ? ' low-confidence' : '';
                 html += `<div class="seg-block">`;
+                // The source line above its translation, when asked for. Without
+                // this the "Show original text" setting had nothing to control in
+                // single view — it only ever affected dual view.
+                if (this.showOriginal && seg.original) {
+                    html += `<div class="seg-original">${this._esc(seg.original)}</div>`;
+                }
                 html += `<div class="seg-translated${confidenceClass}">${this._esc(seg.translation)}</div>`;
                 html += `</div>`;
             }
-            // Skip 'original' segments in single mode — wait for translation
+            // Untranslated 'original' segments are still skipped in single mode —
+            // they appear as soon as their translation lands.
         }
 
         if (this.provisionalText) {

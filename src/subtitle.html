@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subtitles</title>
+  <!-- No webfont here on purpose: this window must paint the first cue the
+       instant it opens, and a font fetch would leave the overlay blank or
+       reflow it mid-sentence. System UI faces are already installed. -->
+  <link rel="stylesheet" href="styles/subtitle.css" />
+</head>
+
+<body>
+  <!-- Frame + handle are invisible while locked; unlocking reveals them so the
+       otherwise-transparent window can be grabbed and moved. -->
+  <div id="frame">
+    <div id="handle" data-tauri-drag-region>
+      <span class="grip" data-tauri-drag-region>⠿</span>
+      <span class="handle-text" data-tauri-drag-region>Drag to move · lock it again in the app to let the mouse pass through</span>
+    </div>
+
+    <div id="cue" class="empty">
+      <span id="cue-src" class="cue-src"></span>
+      <span id="cue-tgt" class="cue-tgt"></span>
+    </div>
+  </div>
+
+  <script type="module" src="js/subtitle.js"></script>
+</body>
+
+</html>

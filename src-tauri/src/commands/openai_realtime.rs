@@ -202,10 +202,12 @@ async fn run_session(
         .await
         .map_err(|e| format!("send session.update: {}", e))?;
 
-    let _ = event_ch.send(OpenAiEvent::Status {
-        state: "ready".into(),
-        message: None,
-    });
+    // "ready" is NOT sent here. Sending session.update only proves the socket
+    // is open — the server can still reject the session straight after, and
+    // reporting connected at this point made the UI flash "Listening" before
+    // every failure. `handle_server_event` promotes the status on the first
+    // real server event instead.
+    let mut ready_sent = false;
 
     loop {
         tokio::select! {
@@ -230,7 +232,12 @@ async fn run_session(
             msg = ws_stream.next() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => {
-                        handle_server_event(&text, &event_ch, cfg.audio_output);
+                        handle_server_event(
+                            &text,
+                            &event_ch,
+                            cfg.audio_output,
+                            &mut ready_sent,
+                        );
                     }
                     Some(Ok(Message::Binary(_))) => {}
                     Some(Ok(Message::Close(frame))) => {
@@ -277,7 +284,12 @@ fn build_session_update(cfg: &OpenAiRealtimeConfig) -> String {
     .to_string()
 }
 
-fn handle_server_event(text: &str, event_ch: &Channel<OpenAiEvent>, audio_output: bool) {
+fn handle_server_event(
+    text: &str,
+    event_ch: &Channel<OpenAiEvent>,
+    audio_output: bool,
+    ready_sent: &mut bool,
+) {
     let value: serde_json::Value = match serde_json::from_str(text) {
         Ok(v) => v,
         Err(_) => return,
@@ -291,6 +303,20 @@ fn handle_server_event(text: &str, event_ch: &Channel<OpenAiEvent>, audio_output
     // Dev trace: log every event type (not the full payload — that's noisy)
     // so we can see the lifecycle around speech pauses and turn boundaries.
     eprintln!("[openai-realtime] event: {}", evt_type);
+
+    // Events that do NOT prove the session is live: `session.created` arrives
+    // before the server has read our config, and `error` / `session.closed`
+    // are the session failing. Anything else means it is running, so a
+    // missing `session.updated` only delays the label instead of leaving the
+    // UI stuck on "connecting".
+    const NOT_READY: [&str; 3] = ["session.created", "error", "session.closed"];
+    if !*ready_sent && !NOT_READY.contains(&evt_type) {
+        *ready_sent = true;
+        let _ = event_ch.send(OpenAiEvent::Status {
+            state: "ready".into(),
+            message: None,
+        });
+    }
 
     match evt_type {
         "session.created" | "session.updated" => {

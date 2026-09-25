@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "subtitle",
+  "description": "Capability for the transparent subtitle overlay window. It only listens for cue/style events and — while unlocked — moves and resizes itself; every other window operation is done from Rust.",
+  "windows": [
+    "subtitle"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-outer-position",
+    "core:window:allow-outer-size",
+    "core:window:allow-inner-size",
+    "core:window:allow-scale-factor"
+  ]
+}

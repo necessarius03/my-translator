@@ -9,6 +9,9 @@
  * app's permissions untouched. When `.env` has no `APP_IDENTIFIER`, the default
  * identifier from `tauri.conf.json` is used unchanged.
  *
+ * On Windows it also drops any inherited `CC`/`CXX` so the MSVC toolchain is
+ * auto-detected instead of a shell-provided compiler shim (see below).
+ *
  * Usage: node scripts/tauri-with-env.mjs <dev|build> [extra tauri args...]
  */
 import { run } from '@tauri-apps/cli';
@@ -85,6 +88,23 @@ if (identifier) {
   console.log(`[tauri-with-env] override: identifier=${identifier}, productName="${devName}", signing=${signLabel}, devtools=on`);
 } else {
   console.log('[tauri-with-env] no APP_IDENTIFIER — using default identifier + name + signing from tauri.conf.json');
+}
+
+// Windows: a `CC`/`CXX` inherited from the surrounding shell is almost always
+// wrong here. Editors that shim a C compiler for their own tooling export it
+// process-wide — Neovim, for instance, points CC at a `zig cc` wrapper for the
+// tree-sitter CLI, and every terminal launched from it inherits that. The `cc`
+// crate honours CC, so `ring` and `sherpa-onnx` compile their C/C++ as MinGW
+// objects and link.exe rejects them with "LNK1143: invalid or corrupt file"
+// (switching to rust-lld only trades that for an undefined `__stack_chk_guard`).
+// Drop the vars and let `cc` locate MSVC through vswhere, which is what the
+// x86_64-pc-windows-msvc target expects.
+if (process.platform === 'win32') {
+  for (const key of ['CC', 'CXX']) {
+    if (!process.env[key]) continue;
+    console.log(`[tauri-with-env] ignoring inherited ${key}=${process.env[key]} — MSVC is auto-detected`);
+    delete process.env[key];
+  }
 }
 
 run(args, 'tauri').catch((err) => {

@@ -1,0 +1,1000 @@
+/* ═══════════════════════════════════════════════════════════
+   The overlay window: control bar, transcript, floating controls,
+   engine picker and engine pill.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   OVERLAY VIEW
+   ═══════════════════════════════════════════════════════════ */
+
+#overlay-view {
+  position: relative;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow:
+    var(--shadow-lg),
+    var(--shadow-md),
+    var(--glass-lip);
+  overflow: hidden;
+}
+
+/* Specular sheen — decorative, pointer-transparent, and above the ground but
+   below every control. One highlight only: more reads as a smudge. */
+#overlay-view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* No blend mode: `screen` over a pale ground blows the whole wash out to
+     white. A plain low-alpha highlight keeps the colour underneath. */
+  background:
+    radial-gradient(90% 42% at 14% -10%, rgba(255, 255, 255, 0.40), transparent 62%),
+    linear-gradient(196deg, transparent 72%, rgba(255, 255, 255, 0.10));
+}
+
+/* Everything interactive sits above the sheen. */
+#overlay-view > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Drag Region / Control Bar ────────────────────────── */
+#drag-region {
+  flex-shrink: 0;
+  height: var(--control-bar-height);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--glass-tint);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-lip);
+}
+
+.control-bar {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 8px;
+  gap: 6px;
+}
+
+/* Icon Buttons */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-app-region: no-drag;
+  padding: 0 4px;
+  gap: 1px;
+}
+
+.icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+.icon-btn.small {
+  width: 28px;
+  height: 28px;
+}
+
+/* iOS-style toggle: label + sliding switch. aria-pressed="true" → on. */
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-app-region: no-drag;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-btn:disabled:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.toggle-track {
+  position: relative;
+  width: 26px;
+  height: 15px;
+  border-radius: 8px;
+  background: var(--control-off);
+  box-shadow: var(--control-off-inset);
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(20, 26, 44, 0.35);
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.toggle-btn[aria-pressed="true"] .toggle-track {
+  background: var(--accent);
+}
+
+.toggle-btn[aria-pressed="true"] .toggle-thumb {
+  background: var(--on-accent);
+  transform: translateX(10px);
+}
+
+.toggle-btn[aria-pressed="true"] {
+  color: var(--text-primary);
+}
+
+.close-btn:hover {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+/* Button labels */
+.btn-label {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+/* Toolbar group */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* TTS Action Button — prominent, next to Start */
+.tts-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--wash-weak);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-app-region: no-drag;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tts-action-btn:hover {
+  background: var(--wash);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.tts-action-btn:active {
+  transform: scale(0.95);
+}
+
+.tts-action-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tts-action-btn.active:hover {
+  background: var(--accent-glow);
+}
+
+/* Subtitle toggle — same toggle grammar as TTS, but icon-only: the row is
+   already tight and the cue window itself is the feedback. */
+.subtitle-action-btn {
+  padding: 0 8px;
+}
+
+.tts-action-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.tts-label {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Pin Button Active State */
+#btn-pin.active {
+  color: var(--accent);
+}
+
+#btn-pin.active:hover {
+  background: var(--accent-glow);
+}
+
+/* ─── Compact Mode ─────────────────────────────────────── */
+#drag-region.compact-hidden {
+  display: none !important;
+}
+
+/* Thin hover trigger at top when compact */
+.compact-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  z-index: 100;
+  cursor: pointer;
+}
+
+.compact-mode:hover #drag-region.compact-hidden {
+  display: flex !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  height: var(--control-bar-height);
+}
+
+.compact-mode #transcript-container {
+  padding-top: 4px;
+}
+
+/* Auto-hide/compact also collapses the Live status + action rows.
+   Hover peeks back only the ACTION row (bottom) — the status row stays
+   hidden because the drag region overlays the same top strip (z-99)
+   and the two would stack garbled/unclickable. */
+.live-status-row.chrome-hidden,
+.live-action-row.chrome-hidden {
+  display: none;
+}
+.compact-mode:hover .live-action-row.chrome-hidden {
+  display: flex;
+}
+
+/* Status Area */
+.status-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  pointer-events: none;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--transition-normal);
+}
+
+.status-dot.disconnected {
+  background: var(--text-muted);
+}
+
+.status-dot.connecting {
+  background: var(--warning);
+  animation: pulse 1.5s infinite;
+}
+
+.status-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success-soft);
+}
+
+.status-dot.error {
+  background: var(--error);
+  box-shadow: 0 0 6px var(--error-soft);
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.status-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* Source Controls */
+.source-controls {
+  display: flex;
+  gap: 2px;
+  background: var(--wash-weak);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.source-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-width: 30px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0 6px;
+  gap: 1px;
+}
+
+.source-btn:hover {
+  color: var(--text-secondary);
+}
+
+.source-btn:active {
+  transform: scale(0.9);
+}
+
+.source-btn.active {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+/* OpenAI mode locks source to mic — show it active but dimmed/disabled. */
+.source-btn.locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+.source-btn.locked:hover { color: var(--accent); }
+
+/* Action Button (Start/Stop) */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 34px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  background: var(--wash-heavy);
+  color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-app-region: no-drag;
+}
+
+.action-btn:hover {
+  background: #fff;
+  color: var(--text-primary);
+}
+
+.action-btn:active {
+  transform: scale(0.92);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.action-btn.recording {
+  background: var(--error);
+  animation: recordPulse 2s infinite;
+}
+
+.action-btn.recording:hover {
+  background: var(--error);
+}
+
+@keyframes recordPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--error-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(217, 58, 58, 0);
+  }
+}
+
+@keyframes accentPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(61, 95, 217, 0);
+  }
+}
+
+/* ─── Transcript Container ─────────────────────────────── */
+#transcript-container {
+  flex: 1;
+  min-height: 0; /* Required for flex child to overflow-scroll properly */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* The transcript itself scrolls; status/action rows stay pinned.
+   No card, no border, no background: the window interior is already the pane
+   of glass, and nesting a second pane inside it doubles every edge and makes
+   the text look boxed in. */
+#transcript-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 18px;
+}
+
+/* Custom scrollbar */
+#transcript-container::-webkit-scrollbar,
+#transcript-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+#transcript-container::-webkit-scrollbar-track,
+#transcript-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#transcript-container::-webkit-scrollbar-thumb,
+#transcript-content::-webkit-scrollbar-thumb {
+  background: var(--wash);
+  border-radius: 2px;
+}
+
+#transcript-container::-webkit-scrollbar-thumb:hover,
+#transcript-content::-webkit-scrollbar-thumb:hover {
+  background: var(--wash-strong);
+}
+
+/* Placeholder */
+.transcript-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.transcript-placeholder p {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.shortcut-hint {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  opacity: 0.6;
+  background: var(--wash-weak);
+  padding: 2px 10px !important;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  font-family: -apple-system, monospace;
+}
+
+/* Listening Indicator */
+.listening-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--text-muted);
+  animation: fadeInUp 0.3s ease;
+}
+
+.listening-indicator p {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.listening-waves {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+}
+
+.listening-waves span {
+  display: block;
+  width: 3px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+.listening-waves span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.listening-waves span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.listening-waves span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.listening-waves span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+.listening-waves span:nth-child(5) {
+  animation-delay: 0.6s;
+}
+
+@keyframes wave {
+
+  0%,
+  100% {
+    height: 8px;
+    opacity: 0.5;
+  }
+
+  50% {
+    height: 24px;
+    opacity: 1;
+  }
+}
+
+/* Transcript — Flowing Paragraph */
+.transcript-flow {
+  font-size: var(--transcript-font-size, 16px);
+  color: var(--transcript-font-color, var(--text-primary));
+  line-height: 1.7;
+  padding: 12px 16px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Each segment block: original + translation pair */
+.seg-block {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ─── Dual View Mode ─────────────────────────────── */
+.dual-view #transcript-content {
+  display: flex;
+  gap: 0;
+  height: 100%;
+}
+
+.dual-view .transcript-flow {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.dual-view .panel-source,
+.dual-view .panel-translation {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px;
+  min-height: 0;
+}
+
+.dual-view .panel-source {
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* Custom scrollbar for panels */
+.dual-view .panel-source::-webkit-scrollbar,
+.dual-view .panel-translation::-webkit-scrollbar {
+  width: 3px;
+}
+
+.dual-view .panel-source::-webkit-scrollbar-thumb,
+.dual-view .panel-translation::-webkit-scrollbar-thumb {
+  background: var(--wash);
+  border-radius: 2px;
+}
+
+.dual-view .panel-source .seg-text {
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.dual-view .panel-translation .seg-text {
+  color: var(--transcript-font-color, var(--text-primary));
+  font-weight: 400;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.dual-view .panel-source .seg-text.pending {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Hide original text in seg-block when dual view (content rendered in panels) */
+.dual-view .seg-block {
+  display: none;
+}
+
+/* Translated text — primary white */
+.seg-translated {
+  display: block;
+  color: var(--transcript-font-color, var(--text-primary));
+  font-weight: 400;
+}
+
+/* Original text — smaller, dimmer, above translation */
+.seg-original {
+  display: block;
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.8em;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+/* ─── Floating Controls (bottom) ────────────────────── */
+.floating-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#overlay-view:hover .floating-controls {
+  opacity: 1;
+}
+
+.font-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--wash-strong);
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+
+.float-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: none;
+  background: var(--wash);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.float-btn:hover {
+  background: var(--wash-strong);
+  color: var(--text-primary);
+}
+
+.float-btn.active {
+  background: var(--accent-glow);
+  color: var(--accent-hover);
+}
+
+.font-size-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  min-width: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.color-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--wash-strong);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 0;
+  outline: none;
+}
+
+.color-dot:hover {
+  transform: scale(1.2);
+}
+
+.color-dot.active {
+  border-color: var(--border-light);
+  box-shadow: 0 0 4px var(--wash-heavy);
+}
+
+/* Speaker label — shown when speaker changes */
+.speaker-label {
+  display: block;
+  color: var(--warning);
+  font-weight: 600;
+  font-size: 0.85em;
+  letter-spacing: 0.02em;
+  margin-top: 12px;
+  margin-bottom: 2px;
+}
+
+/* Language badge — shown when detected language changes */
+.lang-badge {
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-glow);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Low confidence text — highlighted for uncertain transcriptions */
+.low-confidence {
+  border-left: 2px solid var(--warning);
+  padding-left: 6px;
+  color: var(--text-primary);
+}
+
+.low-confidence::after {
+  content: ' ⚠';
+  font-size: 0.7em;
+  color: var(--warning);
+  opacity: 0.6;
+}
+
+/* Provisional text — dimmed, in-progress */
+.seg-provisional {
+  display: block;
+  color: var(--text-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Blinking cursor */
+.cursor-blink {
+  color: var(--accent);
+  font-weight: 300;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Resize Handle ────────────────────────────────────── */
+#resize-handle {
+  height: 6px;
+  cursor: ns-resize;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: no-drag;
+}
+
+#resize-handle::after {
+  content: '';
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--wash);
+  transition: background var(--transition-fast);
+}
+
+#resize-handle:hover::after {
+  background: var(--wash-heavy);
+}
+
+/* ─── Engine picker (welcome-screen cards) ───────────────────────────── */
+.engine-picker {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: var(--wash-strong);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 5;
+  pointer-events: auto;
+}
+.engine-picker-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  text-align: center;
+}
+.engine-picker-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.4rem 0 0 0;
+  text-align: center;
+}
+.engine-cards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.engine-card {
+  min-width: 180px;
+  max-width: 220px;
+  padding: 1rem 1.1rem;
+  background: var(--wash);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms, border-color 120ms, transform 120ms;
+}
+.engine-card:hover {
+  background: var(--wash);
+  border-color: var(--accent-glow);
+  transform: translateY(-1px);
+}
+.engine-card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.engine-card-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.engine-card-name { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.engine-card-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
+.engine-card-feats {
+  margin: 0.6rem 0 0 0;
+  padding: 0 0 0 1rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── Engine pill (persistent toolbar indicator) ─────────────────────── */
+.engine-pill {
+  display: inline-flex;
+  background: var(--wash);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  gap: 0;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.engine-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 120ms, color 120ms, padding 120ms;
+}
+.engine-pill-btn:hover:not(:disabled):not(.active) {
+  background: var(--wash);
+  color: var(--text-primary);
+}
+.engine-pill-btn.active {
+  background: var(--accent-glow);
+  color: var(--text-primary);
+}
+.engine-pill-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.engine-pill-icon { font-size: 0.85rem; }
+/* Compact: only the active option shows its label; inactive becomes icon-only.
+   Frees ~50px in the toolbar without losing the "current engine" indicator. */
+/* All three engine names, as in the design. The labels collapse to icons only
+   when the window is genuinely too narrow for them — keyed off the actual
+   width rather than the window-mode class, which the user sets independently. */
+@media (max-width: 620px) {
+  .engine-pill-btn:not(.active) .engine-pill-label { display: none; }
+  .engine-pill-btn:not(.active) { padding: 3px 6px; }
+}
+.engine-pill[data-locked="true"] { opacity: 0.55; }
+.engine-pill[data-locked="true"] .engine-pill-btn { cursor: not-allowed; }

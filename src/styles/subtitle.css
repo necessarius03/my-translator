@@ -1,0 +1,166 @@
+/* ═══════════════════════════════════════════════════════════
+   Subtitle overlay — transparent window, bottom of the screen.
+
+   Everything here is ruled by one constraint: the background is
+   whatever video happens to be playing underneath. No surface is
+   ours, so contrast has to come from the glyphs themselves.
+   ═══════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  /* Must stay transparent: anything opaque here is a grey box over the film. */
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+
+body {
+  /* Cue size is pushed from settings as a CSS variable so a size change is one
+     custom-property write, not a re-render. */
+  --cue-size: 30px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+#frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Cues sit on the SAME baseline whether one line or two: the box is
+     bottom-aligned, so extra lines grow upward like real subtitles. */
+  align-items: center;
+  padding: 10px 24px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+/* ─── Unlocked: the window is solid and draggable ──────────── */
+
+body.unlocked #frame {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(20, 24, 38, 0.35);
+}
+
+#handle {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  margin-bottom: auto;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: rgba(15, 18, 30, 0.85);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  cursor: grab;
+}
+
+body.unlocked #handle {
+  display: flex;
+}
+
+#handle:active {
+  cursor: grabbing;
+}
+
+.grip {
+  font-size: 14px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.handle-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── The cue itself ───────────────────────────────────────── */
+
+#cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  text-align: center;
+  text-wrap: balance;
+  padding: 6px 16px;
+  border-radius: 8px;
+  transition: opacity 140ms ease;
+}
+
+/* Silence should look like silence — no empty panel hovering over the film. */
+#cue.empty {
+  opacity: 0;
+}
+
+.cue-tgt {
+  font-size: var(--cue-size);
+  font-weight: 600;
+  line-height: 1.32;
+  color: #fff;
+}
+
+.cue-src {
+  /* Deliberately ~55% of the translation: present for checking a word, never
+     competing with the line the viewer is actually reading. */
+  font-size: calc(var(--cue-size) * 0.55);
+  font-weight: 400;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+#cue.no-src .cue-src {
+  display: none;
+}
+
+/* Text the engine is still revising. Kept legible — it is usually the newest
+   and most interesting line — but clearly not final. */
+#cue.provisional .cue-tgt {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ─── Two ways to survive an unknown background ────────────── */
+
+/* Default: outline the glyphs. Layered shadows read as a dark rim on bright
+   scenes and as a soft halo on dark ones, without covering any picture. */
+#cue.outlined .cue-tgt {
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.95),
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 14px rgba(0, 0, 0, 0.75);
+}
+
+#cue.outlined .cue-src {
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.95),
+    0 2px 4px rgba(0, 0, 0, 0.85);
+}
+
+/* Alternative: a dim plate. Guarantees contrast on busy footage at the cost of
+   hiding a strip of picture. */
+#cue.boxed {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #cue,
+  #frame {
+    transition: none;
+  }
+}

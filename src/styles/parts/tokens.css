@@ -1,0 +1,131 @@
+/* ═══════════════════════════════════════════════════════════
+   Design tokens — the one place colour, elevation, radius and
+   timing are defined. Nothing else in the stylesheet may hold a
+   raw colour value.
+
+   The app commits to a single light "liquid glass" look. It is
+   NOT a see-through overlay: the window is
+   `"transparent": false`, so the ground every pane floats on is
+   the app's own ambient wash, painted on #overlay-view. That is
+   deliberate — text here is read continuously, and text over an
+   arbitrary desktop wallpaper is a bad trade.
+
+   (The subtitle window is the exception: it really does float
+   over video and has its own stylesheet and its own rules.)
+
+   Glass is expensive. `backdrop-filter` makes the WebView
+   repaint what is behind it every frame, and a transcript
+   streams. Real blur is therefore capped at three surfaces —
+   the window shell, the activity tab strip, the engine pills —
+   and everything else fakes it with translucent colour plus a
+   lit edge. See --glass-* below; don't add a fourth without a
+   reason.
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── The ground ────────────────────────────────────────
+     An ambient wash rather than a flat fill: glass needs
+     something with variation behind it, or it reads as grey
+     plastic. Three soft lights over a cool near-white. */
+  /* The window interior IS the pane of glass. Content sits directly on it —
+     no inner card — which is why this is a tinted near-white rather than a
+     saturated wash: the transcript is read off this surface. The colour that
+     makes it read as glass comes from the three soft lights, kept faint. */
+  /* The window interior IS the pane of glass, and content is read directly off
+     it — so it stays white. The violet light is gone entirely: it was the one
+     that tinted the whole surface purple. What is left is a whisper of cool
+     colour at two corners, enough for the glass chrome to have something to
+     pick up without the page ever reading as tinted. */
+  --bg-primary:
+    radial-gradient(70% 48% at 4% -14%, rgba(92, 126, 255, 0.07), transparent 62%),
+    radial-gradient(64% 44% at 100% -6%, rgba(58, 208, 192, 0.055), transparent 60%),
+    linear-gradient(180deg, #FFFFFF, #F7F9FD);
+
+  /* Long-form surfaces (Settings, Library) sit nearly opaque: a
+     form full of fields over a coloured wash is unreadable. */
+  --bg-secondary: rgba(255, 255, 255, 0.88);
+  --bg-glass: rgba(255, 255, 255, 0.55);
+  --bg-input: rgba(255, 255, 255, 0.72);
+  --bg-hover: rgba(255, 255, 255, 0.85);
+  --bg-active: rgba(255, 255, 255, 0.95);
+
+  /* ── Washes ────────────────────────────────────────────
+     On a coloured ground, a pane is lifted by WHITE, not by ink.
+     Four steps, by how much separation the element needs. */
+  --wash-weak: rgba(255, 255, 255, 0.26);
+  --wash: rgba(255, 255, 255, 0.40);
+  --wash-strong: rgba(255, 255, 255, 0.62);
+  --wash-heavy: rgba(255, 255, 255, 0.86);
+
+  --scrim: rgba(18, 24, 44, 0.42);
+
+  /* ── Lines ─────────────────────────────────────────────
+     Glass edges are light, not dark: they are the lit rim where
+     light enters the pane. */
+  --border-subtle: rgba(255, 255, 255, 0.42);
+  --border-light: rgba(255, 255, 255, 0.68);
+  --border-focus: rgba(63, 91, 217, 0.48);
+
+  /* An INK hairline, for the one place a white edge cannot work: form controls
+     sitting on the near-opaque Settings and Library surfaces. A white border on
+     a white card is an invisible border. */
+  --hairline: rgba(20, 26, 44, 0.14);
+  --hairline-strong: rgba(20, 26, 44, 0.22);
+
+  /* The OFF state of a switch. It has to be an ink recess: every white token
+     in this palette is invisible against the white ground, and a switch whose
+     off state cannot be seen reads as a missing control, not an off one. */
+  --control-off: rgba(20, 26, 44, 0.16);
+  --control-off-inset: inset 0 0 0 1px rgba(20, 26, 44, 0.10), inset 0 2px 4px rgba(20, 26, 44, 0.12);
+
+  /* ── Text ──────────────────────────────────────────────
+     Ink is a very dark blue-grey, not black: pure black on a
+     bright glass ground is harsher than this content warrants. */
+  --text-primary: #141A2A;
+  --text-secondary: #4C5670;
+  --text-muted: #7D879E;
+  --text-provisional: #9AA3B8;
+  --on-accent: #FFFFFF;
+
+  /* ── Accent ────────────────────────────────────────────── */
+  --accent: #3F5BD9;
+  --accent-hover: #2A3FA8;
+  --accent-glow: rgba(63, 91, 217, 0.14);
+
+  /* ── Semantic state, separate from the accent ──────────── */
+  --success: #0E9B57;
+  --warning: #BE7A05;
+  --error: #D8394A;
+  --success-soft: rgba(14, 155, 87, 0.13);
+  --warning-soft: rgba(190, 122, 5, 0.14);
+  --error-soft: rgba(216, 57, 74, 0.12);
+
+  /* ── Glass ─────────────────────────────────────────────
+     Four ingredients, each doing one job:
+       tint  — the pane itself, denser at the top
+       blur  — what makes it read as glass; `saturate` keeps the
+               colour behind alive, without it you get frosted
+               plastic
+       lip   — the lit top edge, which is what gives thickness
+       drop  — a wide soft shadow that lifts it off the ground */
+  --glass-tint: linear-gradient(170deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.50));
+  --glass-blur: blur(26px) saturate(185%);
+  --glass-lip: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.28);
+
+  /* ── Elevation ─────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(16, 22, 40, 0.12);
+  --shadow-md: 0 2px 10px rgba(16, 22, 40, 0.12);
+  --shadow-lg: 0 14px 40px -12px rgba(16, 22, 40, 0.34);
+  --shadow-xl: 0 24px 64px -18px rgba(16, 22, 40, 0.42);
+
+  /* ── Metrics ───────────────────────────────────────────
+     Glass wants generous curvature; controls go fully round. */
+  --control-bar-height: 46px;
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --transition-fast: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}

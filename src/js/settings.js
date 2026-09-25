@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
   source_language: 'auto',
   target_language: 'vi',
   audio_source: 'system',
-  overlay_opacity: 0.85,
+  overlay_opacity: 1.0,
   font_size: 16,
   max_lines: 5,
   show_original: true,
@@ -43,6 +43,19 @@ const DEFAULT_SETTINGS = {
   local_tts_voice: 'vi_VN-vais1000-medium',
   local_tts_speed: 1.0,
   local_tts_models_dir: '',
+  // Subtitle overlay (transparent bottom-of-screen window)
+  subtitle_enabled: false,
+  subtitle_font_size: 30,
+  subtitle_show_original: true,
+  subtitle_boxed: false,
+  subtitle_hold_ms: 5000,
+  // Meeting summary
+  summary_provider: 'openai',
+  summary_model: '',
+  gemini_api_key: '',
+  summary_language: 'English',
+  summary_prompt: '',
+  summary_auto: true,
 };
 
 class SettingsManager {

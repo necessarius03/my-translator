@@ -18,6 +18,8 @@ export class SessionStore {
         this.endedAt = null;
         this.title = '';
         this.engine = null;            // 'openai' | 'soniox' | 'local'
+        this.kind = 'live';            // 'live' | 'meeting' — how it was recorded
+        this.summary = '';             // meeting summary, filled in after the fact
         this.sourceLang = '';
         this.targetLang = '';
         this.chunks = [];
@@ -42,6 +44,8 @@ export class SessionStore {
         this.endedAt = null;
         this.title = '';
         this.engine = engine || null;
+        this.kind = 'live';
+        this.summary = '';
         this.sourceLang = sourceLang || '';
         this.targetLang = targetLang || '';
         this.chunks = [];
@@ -61,6 +65,8 @@ export class SessionStore {
         s.endedAt = j.ended_at;
         s.title = j.title || '';
         s.engine = j.engine || null;
+        s.kind = j.kind || 'live';
+        s.summary = j.summary || '';
         s.sourceLang = j.source_lang || '';
         s.targetLang = j.target_lang || '';
         s.chunks = j.chunks || [];
@@ -103,6 +109,12 @@ export class SessionStore {
             this._mutations++;
         }
         this.currentChunk = null;
+    }
+
+    /** Mark the store changed without adding a segment — used when metadata
+     *  (title, summary) changes and must reach disk on the next persist. */
+    markDirty() {
+        this._mutations++;
     }
 
     // Public persist entry point. Serializes concurrent calls through a chain so
@@ -257,6 +269,8 @@ export class SessionStore {
             ended_at: this.endedAt,
             title: this.title || this._autoTitle(),
             engine: this.engine || 'unknown',
+            kind: this.kind || 'live',
+            summary: this.summary || '',
             source_lang: this.sourceLang || '',
             target_lang: this.targetLang || '',
             duration_sec: this._totalDurationSec(),
@@ -288,8 +302,20 @@ export class SessionStore {
 
         lines.push(`# ${title}`);
         lines.push('');
-        lines.push(`**Engine**: ${this.engine || 'unknown'} · ${langPair} · ${this._formatDateTime(this.createdAt)} · ${dur}`);
+        const kindLabel = this.kind === 'meeting' ? 'Meeting' : 'Live translation';
+        lines.push(`**${kindLabel}** · ${this.engine || 'unknown'} · ${langPair} · ${this._formatDateTime(this.createdAt)} · ${dur}`);
         lines.push('');
+
+        // Summary first: for a meeting it is what anyone reopening the file
+        // actually wants; the transcript below is the evidence for it.
+        if (this.summary) {
+            lines.push('## Summary');
+            lines.push('');
+            lines.push(this.summary.trim());
+            lines.push('');
+            lines.push('## Transcript');
+            lines.push('');
+        }
 
         const all = this._allChunks();
         for (let i = 0; i < all.length; i++) {

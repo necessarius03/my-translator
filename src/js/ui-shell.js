@@ -8,7 +8,7 @@
  * dispatched from here.
  */
 
-const ACTIVITIES = ['live', 'read', 'library'];
+const ACTIVITIES = ['live', 'meeting', 'read', 'library'];
 
 let currentActivity = 'live';
 
@@ -36,9 +36,19 @@ export function setActivity(id) {
     }));
 }
 
-/** Red "recording" dot on the Live tab while a session runs in background. */
-export function setLiveBadge(on) {
-    document.getElementById('live-tab-badge')?.classList.toggle('visible', !!on);
+/**
+ * Red "recording" dot on the tab that owns the running session, so the badge
+ * points at where the session actually is when the user is on another tab.
+ * The badge is a single node that moves rather than one node per tab.
+ */
+export function setLiveBadge(on, activity = 'live') {
+    const badge = document.getElementById('live-tab-badge');
+    if (!badge) return;
+    if (on) {
+        const tab = document.querySelector(`.activity-tab[data-activity="${activity}"]`);
+        if (tab && badge.parentElement !== tab) tab.appendChild(badge);
+    }
+    badge.classList.toggle('visible', !!on);
 }
 
 export function initShell() {
@@ -199,7 +209,7 @@ export async function applyWindowMode(mode) {
         applyingMode = false;
     }
     const btn = document.getElementById('btn-window-mode');
-    if (btn) btn.title = mode === 'expanded' ? 'Thu về overlay nhỏ' : 'Mở rộng cửa sổ';
+    if (btn) btn.title = mode === 'expanded' ? 'Shrink back to the small overlay' : 'Expand window';
 }
 
 export async function toggleWindowMode() {

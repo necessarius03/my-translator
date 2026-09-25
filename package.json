@@ -11,10 +11,12 @@
     "build": "tauri build",
     "build:dev": "node scripts/tauri-with-env.mjs build",
     "lint": "cd src-tauri && cargo clippy",
-    "format": "cd src-tauri && cargo fmt"
+    "format": "cd src-tauri && cargo fmt",
+    "test:ui": "node tests/ui-suite.mjs"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "^2",
+    "playwright-core": "^1.63.0"
   },
   "dependencies": {
     "@tauri-apps/plugin-process": "^2.3.1",

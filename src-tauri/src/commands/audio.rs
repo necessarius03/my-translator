@@ -1,6 +1,5 @@
 use crate::audio::microphone::MicCapture;
 use crate::audio::SystemAudioCapture;
-use serde::Serialize;
 use std::sync::mpsc;
 use std::sync::Mutex;
 use tauri::{ipc::Channel, State};
@@ -23,12 +22,6 @@ impl AudioForwarder {
         self.stop_flag
             .store(true, std::sync::atomic::Ordering::SeqCst);
     }
-}
-
-#[derive(Serialize, Clone)]
-pub struct PermissionStatus {
-    pub screen_recording: String,
-    pub microphone: String,
 }
 
 /// Start audio capture and forward data to the frontend via IPC channel
@@ -156,16 +149,5 @@ fn stop_capture_inner(state: &AudioState) {
     // Stop microphone
     if let Ok(mut mic) = state.microphone.lock() {
         mic.stop();
-    }
-}
-
-/// Check audio capture permissions
-#[tauri::command]
-pub fn check_permissions() -> PermissionStatus {
-    // Note: Actual permission checking on macOS requires Objective-C interop
-    // For now, we return "unknown" and permissions will be prompted on first use
-    PermissionStatus {
-        screen_recording: "unknown".to_string(),
-        microphone: "unknown".to_string(),
     }
 }

@@ -1,0 +1,338 @@
+/* ═══════════════════════════════════════════════════════════
+   Meeting mode — the same live session, dressed for an hour of
+   sitting still rather than a glance at a floating overlay.
+
+   Differences that matter visually: the clock is the loudest
+   thing on screen, the transcript is given the whole panel, and
+   no chrome auto-hides (you scroll back in a meeting).
+   ═══════════════════════════════════════════════════════════ */
+
+.meeting-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ─── Top bar: clock + recording state + the one switch ─── */
+
+.meeting-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.meeting-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.meeting-led.recording {
+  background: var(--error);
+  box-shadow: 0 0 0 3px var(--error-soft);
+  animation: meetingPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes meetingPulse {
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meeting-led.recording { animation: none; }
+}
+
+.meeting-clock {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  /* Digits must not shuffle sideways every second. */
+  font-variant-numeric: tabular-nums;
+}
+
+.meeting-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ─── The live-translate switch ──────────────────────────
+   The single decision this mode asks of the user, so it gets a
+   real switch rather than a checkbox lost in a menu. */
+
+.meeting-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  -webkit-app-region: no-drag;
+}
+
+.meeting-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.meeting-track {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  border-radius: 999px;
+  background: var(--control-off);
+  border: 1px solid transparent;
+  box-shadow: var(--control-off-inset);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.meeting-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(20, 26, 44, 0.35);
+  transition: transform var(--transition-fast);
+}
+
+.meeting-switch input:checked + .meeting-track {
+  background: linear-gradient(180deg, #5A74E6, var(--accent));
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.meeting-switch input:checked + .meeting-track::after {
+  transform: translateX(15px);
+}
+
+.meeting-switch input:focus-visible + .meeting-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.meeting-switch input:disabled + .meeting-track {
+  opacity: 0.45;
+}
+
+.meeting-switch:has(input:disabled) {
+  cursor: not-allowed;
+  color: var(--text-muted);
+  /* Dim the whole control, not just the track: a bright switch that ignores
+     clicks reads as broken rather than as unavailable. */
+  opacity: 0.55;
+}
+
+/* ─── Status strip ───────────────────────────────────────── */
+
+.meeting-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.meeting-engine {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Explains why the switch is locked for the current engine. Warning-coloured
+   because it reports a real limitation, not a neutral fact. */
+.meeting-hint {
+  color: var(--warning);
+}
+
+.meeting-hint:empty {
+  display: none;
+}
+
+/* ─── Transcript region ──────────────────────────────────
+   No max-lines trimming and no auto-hide: a meeting is reviewed
+   by scrolling back, which the Live overlay never does. */
+
+.meeting-stream {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0;
+  /* The transcript element moved in here brings its own glass pane, so this
+     slot stays a plain box — two nested panes would double every edge. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* `display` in a class rule beats the UA's [hidden] rule, so the view switch
+   has to be restated here — otherwise the transcript and the summary render
+   on top of each other. */
+.meeting-stream[hidden] {
+  display: none;
+}
+
+/* ─── Action row ─────────────────────────────────────────── */
+
+.meeting-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+/* ─── Summary ────────────────────────────────────────────
+   The summary is the artefact people come back for; the
+   transcript is the evidence behind it. So the summary opens
+   first once it exists, and reads as a document, not a log. */
+
+.meeting-views {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* Any class rule that sets `display` outranks the UA's [hidden] rule, so every
+   element this panel hides has to restate it. Without this the tab strip shows
+   before a summary exists, promising a view that is not there. */
+.meeting-views[hidden] {
+  display: none;
+}
+
+.meeting-view-tab {
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.meeting-view-tab:hover { color: var(--text-primary); }
+
+.meeting-view-tab.active {
+  color: var(--accent-hover);
+  border-bottom-color: var(--accent);
+}
+
+.meeting-summary {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.meeting-summary[hidden] { display: none; }
+
+.meeting-summary-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+/* Running text stays near 65 characters; a summary is read, not scanned. */
+.meeting-summary-body p,
+.meeting-summary-body li {
+  max-width: 66ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.meeting-summary-body p { margin: 0 0 10px; }
+
+.meeting-summary-body h2,
+.meeting-summary-body h3,
+.meeting-summary-body h4 {
+  margin: 18px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.meeting-summary-body > :first-child { margin-top: 0; }
+
+.meeting-summary-body ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+
+.meeting-summary-body li { margin-bottom: 6px; }
+
+.meeting-summary-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--wash);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Used by the "transcript was truncated" notice the backend appends. */
+.meeting-summary-body blockquote {
+  margin: 12px 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--warning);
+  background: var(--warning-soft);
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+.meeting-summary-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.meeting-summary-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Waiting on the model: the panel says what it is doing rather than going blank. */
+.meeting-summary-pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.meeting-summary-error {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--error);
+  background: var(--error-soft);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}

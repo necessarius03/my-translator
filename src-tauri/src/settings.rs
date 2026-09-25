@@ -98,10 +98,45 @@ pub struct Settings {
     /// Folder where local TTS models are stored; empty = default app-data location.
     #[serde(default)]
     pub local_tts_models_dir: String,
-    /// OpenAI Realtime: when true server generates translated audio.
-    /// Default false — speaker → mic feedback loop on shared devices.
+
+    // ── Subtitle overlay (the transparent bottom-of-screen window) ──
+    /// Reopen the subtitle overlay automatically on the next launch.
     #[serde(default)]
-    pub openai_audio_output: bool,
+    pub subtitle_enabled: bool,
+    /// Cue font size in px. Much larger than the in-app transcript: this is
+    /// read from across the room, over video.
+    #[serde(default = "default_subtitle_font_size")]
+    pub subtitle_font_size: u32,
+    /// Show the source line above the translation.
+    #[serde(default = "default_true")]
+    pub subtitle_show_original: bool,
+    /// Dim panel behind the cue instead of an outline around the glyphs.
+    #[serde(default)]
+    pub subtitle_boxed: bool,
+    /// Clear the cue after this long with no new text. 0 = keep it up.
+    #[serde(default = "default_subtitle_hold_ms")]
+    pub subtitle_hold_ms: u32,
+
+    // ── Meeting summary ──
+    /// Which model writes the summary: "openai" | "qwen" | "gemini".
+    #[serde(default = "default_summary_provider")]
+    pub summary_provider: String,
+    /// Model id for that provider. Left to the user because provider line-ups
+    /// change faster than this app ships.
+    #[serde(default)]
+    pub summary_model: String,
+    /// Google AI Studio key — only used for summaries; no Gemini engine exists.
+    #[serde(default)]
+    pub gemini_api_key: String,
+    /// Language the summary is written in.
+    #[serde(default = "default_summary_language")]
+    pub summary_language: String,
+    /// Overrides the built-in instructions when non-empty.
+    #[serde(default)]
+    pub summary_prompt: String,
+    /// Summarise automatically when a meeting ends.
+    #[serde(default = "default_true")]
+    pub summary_auto: bool,
 }
 
 impl Default for Settings {
@@ -113,7 +148,7 @@ impl Default for Settings {
             source_language: "auto".to_string(),
             target_language: "vi".to_string(),
             audio_source: "system".to_string(),
-            overlay_opacity: 0.85,
+            overlay_opacity: 1.0,
             font_size: 16,
             max_lines: 5,
             show_original: true,
@@ -141,7 +176,17 @@ impl Default for Settings {
             local_tts_voice: "vi_VN-vais1000-medium".to_string(),
             local_tts_speed: 1.0,
             local_tts_models_dir: String::new(),
-            openai_audio_output: false,
+            subtitle_enabled: false,
+            subtitle_font_size: 30,
+            subtitle_show_original: true,
+            subtitle_boxed: false,
+            subtitle_hold_ms: 5000,
+            summary_provider: "openai".to_string(),
+            summary_model: String::new(),
+            gemini_api_key: String::new(),
+            summary_language: "English".to_string(),
+            summary_prompt: String::new(),
+            summary_auto: true,
         }
     }
 }
@@ -149,6 +194,26 @@ impl Default for Settings {
 /// Serde default for `local_tts_speed` (field-level default would give 0.0).
 fn default_local_tts_speed() -> f32 {
     1.0
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_subtitle_font_size() -> u32 {
+    30
+}
+
+fn default_subtitle_hold_ms() -> u32 {
+    5000
+}
+
+fn default_summary_provider() -> String {
+    "openai".to_string()
+}
+
+fn default_summary_language() -> String {
+    "English".to_string()
 }
 
 /// Get the settings file path

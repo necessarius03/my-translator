@@ -16,7 +16,6 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
@@ -40,6 +39,7 @@ test_audio.wav
 
 # Agent configs (internal)
 CLAUDE.md
+CLAUDE.local.md
 GEMINI.md
 
 # Internal dev files (private repo only)
@@ -59,11 +59,8 @@ plans
 scripts/benchmark_*.py
 scripts/test_*.py
 
-# Private files (dev-logs, agent instructions, internal docs)
+# Private files (dev-logs, internal docs)
 .private/
-GEMINI.md
-CLAUDE.md
-CLAUDE.local.md
 
 # Local test fixtures (large media)
 live-test/
@@ -73,3 +70,6 @@ live-test/
 .env.local
 _drafts
 tts-models/
+
+# Test artefacts
+tests/screenshots/

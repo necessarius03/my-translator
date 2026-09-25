@@ -48,13 +48,13 @@ Four translation engines, pick what fits your call:
 | **Engines** | ☁️ Soniox · ⚡ OpenAI Realtime · 🌏 Qwen LiveTranslate Flash · 🖥️ Local MLX |
 | **Latency** | ~2 s (Soniox / OpenAI) · ~4 s (Qwen) · ~10 s (Local) |
 | **Languages** | 70+ source → any target (Soniox), 13 targets (OpenAI), 60+ source+target (Qwen), JA/EN/ZH/KO → VI/EN (Local) |
-| **Cost** | ~$0.12/hr (Soniox) · ~$4/hr (OpenAI, includes voice) · Free preview (Qwen, text-only) · Free (Local) |
+| **Cost** | ~$0.12/hr (Soniox) · ~$4/hr (OpenAI, includes voice) · token-priced (Qwen — see below) · Free (Local) |
 | **TTS** | 3 providers for Soniox / Local (Edge free, Google, ElevenLabs) — OpenAI streams its own voice (off by default), Qwen text-only |
 | **Platform** | macOS (ARM + Intel) · Windows · Local mode = Apple Silicon only |
 | **Signed** | ✅ macOS signed & notarized |
 | **Auto-Update** | ✅ Built-in, check & install from Settings |
 
-> 📊 Detailed head-to-head: [**OpenAI Realtime vs Soniox benchmark**](docs/benchmark_openai_vs_soniox.md) — speed, quality, cost, and translation-mechanism comparison from a 5-min real-world test.
+> 📊 Measured numbers: [**engine latency benchmarks**](benchmarks/) — first-translation latency per engine on a 5-min real-world clip, plus why Soniox's 2–3 s lag is an API floor rather than app overhead.
 
 ---
 
@@ -126,7 +126,7 @@ Two-way mode and the custom TTS toggle are unavailable while OpenAI Realtime is 
 
 ### 🌏 Qwen LiveTranslate Flash Mode
 
-Alibaba DashScope `qwen3-livetranslate-flash-realtime` — streams **translated text** (no native voice) on Qwen's **free preview tier**, with a **60-language picker** matching the mobile app. Server-side VAD handles turn detection, so it works with mic / system audio / both. Translation-only display (no source-transcript panel; the model doesn't expose ASR). Get a key from [Alibaba Cloud Bailian](https://bailian.console.alibabacloud.com) (Singapore region only — other regions hit a different endpoint and fail).
+Alibaba DashScope `qwen3.5-livetranslate-flash-realtime` — streams **translated text** (no native voice), with a **60-language picker** matching the mobile app. **Paid**: ~$7.5 per 1M audio input tokens as listed in Model Studio (2026-09). The free preview tier this engine was originally built against has ended, and the older `qwen3-livetranslate-flash-realtime` is now flagged *Retiring*. Server-side VAD handles turn detection, so it works with mic / system audio / both. Translation-only display (no source-transcript panel; the model doesn't expose ASR). Get a key from [Alibaba Cloud Bailian](https://bailian.console.alibabacloud.com) (Singapore region only — other regions hit a different endpoint and fail).
 
 Source language must be picked explicitly (auto-detect is disabled on this engine — Live Flash stalls on real mic input when source is "auto"). Two-way mode and the custom TTS toggle are also disabled while Qwen is selected.
 

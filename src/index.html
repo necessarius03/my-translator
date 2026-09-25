@@ -26,18 +26,21 @@
           <span id="settings-badge" class="settings-badge" style="display:none"></span>
         </button>
 
-        <!-- Activity switcher — the 3 first-class spaces of the app -->
+        <!-- Activity switcher — the 4 first-class spaces of the app -->
         <div class="activity-switcher">
-          <button class="activity-tab active" data-activity="live" title="Dịch trực tiếp" type="button">
-            🎙 Live<span id="live-tab-badge" class="live-tab-badge"></span>
+          <button class="activity-tab active" data-activity="live" title="Live translation" type="button">
+            🎙<span class="activity-tab-text"> Live</span><span id="live-tab-badge" class="live-tab-badge"></span>
           </button>
-          <button class="activity-tab" data-activity="read" title="Đọc văn bản (TTS)" type="button">📖 Đọc</button>
-          <button class="activity-tab" data-activity="library" title="Sessions đã lưu" type="button">📚 Thư viện</button>
+          <button class="activity-tab" data-activity="meeting" title="Meeting — record the minutes, then summarise" type="button">
+            👥<span class="activity-tab-text"> Meeting</span>
+          </button>
+          <button class="activity-tab" data-activity="read" title="Read aloud (TTS)" type="button">📖<span class="activity-tab-text"> Read</span></button>
+          <button class="activity-tab" data-activity="library" title="Saved sessions" type="button">📚<span class="activity-tab-text"> Library</span></button>
         </div>
 
         <div class="toolbar-spacer" data-tauri-drag-region></div>
 
-        <button id="btn-window-mode" class="icon-btn" title="Mở rộng cửa sổ">
+        <button id="btn-window-mode" class="icon-btn" title="Expand window">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="15 3 21 3 21 9" />
             <polyline points="9 21 3 21 3 15" />
@@ -84,11 +87,11 @@
           <span id="status-indicator" class="status-dot disconnected"></span>
           <span id="status-text" class="status-text">Ready</span>
         </div>
-        <span id="live-lang" class="live-lang" title="Cặp ngôn ngữ (đổi trong Cài đặt)"></span>
-        <select id="select-audio-source" class="source-select" title="Nguồn âm thanh (⌘1/2/3)">
+        <span id="live-lang" class="live-lang" title="Language pair (change in Settings)"></span>
+        <select id="select-audio-source" class="source-select" title="Audio source (⌘1/2/3)">
           <option value="system">🔊 System</option>
           <option value="microphone">🎤 Mic</option>
-          <option value="both">🔊+🎤 Cả hai</option>
+          <option value="both">🔊+🎤 Both</option>
         </select>
       </div>
 
@@ -114,7 +117,7 @@
           <svg id="icon-stop" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none">
             <rect x="4" y="4" width="16" height="16" rx="2" />
           </svg>
-          <span id="btn-start-label">Bắt đầu</span>
+          <span id="btn-start-label">Start</span>
         </button>
 
         <button id="btn-pause" class="action-btn" title="Pause (keep session)" disabled>
@@ -136,17 +139,28 @@
           <span class="tts-label">TTS</span>
         </button>
 
+        <!-- Subtitles: opens the transparent strip pinned to the bottom of the
+             screen. It sits next to TTS because both answer the same question —
+             where the translation comes out. -->
+        <button id="btn-subtitle" class="tts-action-btn subtitle-action-btn" title="Show on-screen subtitles (⌘U)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="6" y1="14" x2="12" y2="14" />
+            <line x1="15" y1="14" x2="18" y2="14" />
+          </svg>
+        </button>
+
         <div class="more-menu-wrap">
-          <button id="btn-more" class="icon-btn" title="Thêm">
+          <button id="btn-more" class="icon-btn" title="More">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
             </svg>
           </button>
           <div id="more-menu" class="more-menu" style="display:none">
             <button id="btn-copy" class="more-menu-item" type="button">📋 Copy transcript</button>
-            <button id="btn-clear" class="more-menu-item" type="button">🗑 Xóa transcript</button>
+            <button id="btn-clear" class="more-menu-item" type="button">🗑 Clear transcript</button>
             <div class="more-menu-sep"></div>
-            <div class="more-menu-label">Hiển thị</div>
+            <div class="more-menu-label">Display</div>
             <div class="floating-controls">
               <div class="font-controls">
                 <button id="btn-font-down" class="float-btn" title="Decrease font size">A−</button>
@@ -154,9 +168,9 @@
                 <button id="btn-font-up" class="float-btn" title="Increase font size">A+</button>
               </div>
               <div class="color-controls">
-                <button class="color-dot active" data-color="#ffffff" title="White" style="background:#ffffff;"></button>
-                <button class="color-dot" data-color="#ffd700" title="Yellow" style="background:#ffd700;"></button>
-                <button class="color-dot" data-color="#00e5ff" title="Cyan" style="background:#00e5ff;"></button>
+                <button class="color-dot active" data-color="#1B2135" title="Ink" style="background:#1B2135;"></button>
+                <button class="color-dot" data-color="#B45309" title="Amber" style="background:#B45309;"></button>
+                <button class="color-dot" data-color="#0E7490" title="Teal" style="background:#0E7490;"></button>
               </div>
               <button id="btn-view-mode" class="float-btn" title="Toggle dual view">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -166,12 +180,17 @@
               </button>
             </div>
             <div class="more-menu-sep"></div>
-            <button id="btn-compact" class="more-menu-item" type="button">⤢ Compact — ẩn thanh công cụ</button>
-            <button id="btn-auto-hide" class="more-menu-item" type="button">✓ Tự ẩn khi đang dịch</button>
-            <button id="btn-shortcuts" class="more-menu-item" type="button">⌨️ Phím tắt</button>
+            <div class="more-menu-label">Subtitles</div>
+            <button id="btn-subtitle-lock" class="more-menu-item" type="button" disabled>🔓 Unlock to move subtitles</button>
+            <button id="btn-subtitle-reset" class="more-menu-item" type="button" disabled>⤓ Reset to bottom of screen</button>
+            <div class="more-menu-sep"></div>
+            <button id="btn-compact" class="more-menu-item" type="button">⤢ Compact — hide the toolbars</button>
+            <button id="btn-auto-hide" class="more-menu-item" type="button">✓ Auto-hide while translating</button>
+            <button id="btn-shortcuts" class="more-menu-item" type="button">⌨️ Keyboard shortcuts</button>
           </div>
         </div>
       </div>
+
 
       <!-- Engine picker — shown before the first session each launch.
            Two cards because OpenAI Realtime is structurally different from
@@ -214,21 +233,86 @@
       </div>
     </div>
 
+    <!-- Meeting — the same live session as the Live tab. What differs is the
+         presentation, and the fact that the record is saved tagged as a meeting
+         so it can be summarised afterwards. The transcript box is the SAME DOM
+         element as the Live tab's, moved back and forth, so there are never two
+         copies of the transcript to keep in step. -->
+    <div class="activity-panel meeting-panel" data-activity="meeting">
+      <div class="meeting-bar">
+        <span id="meeting-led" class="meeting-led"></span>
+        <span id="meeting-clock" class="meeting-clock">00:00:00</span>
+        <span id="meeting-meta" class="meeting-meta">Not started</span>
+        <div class="toolbar-spacer"></div>
+        <label class="meeting-switch" title="Switch off to transcribe only, without translating">
+          <input type="checkbox" id="check-meeting-translate" checked />
+          <span class="meeting-track"></span>
+          <span class="meeting-switch-label">Translate live</span>
+        </label>
+      </div>
+
+      <div class="meeting-status">
+        <span id="meeting-engine" class="meeting-engine"></span>
+        <span id="meeting-hint" class="meeting-hint"></span>
+        <div class="toolbar-spacer"></div>
+        <select id="select-meeting-source" class="source-select" title="Audio source">
+          <option value="both">🔊+🎤 Both</option>
+          <option value="system">🔊 System</option>
+          <option value="microphone">🎤 Micro</option>
+        </select>
+      </div>
+
+      <!-- Appears once a summary exists; before that there is only one thing
+           to look at, so showing a tab strip would be noise. -->
+      <div class="meeting-views" id="meeting-views" hidden>
+        <button class="meeting-view-tab active" data-view="summary" type="button">Summary</button>
+        <button class="meeting-view-tab" data-view="transcript" type="button">Transcript</button>
+      </div>
+
+      <!-- Transcript element is moved in here while this tab is active. -->
+      <div id="meeting-stream" class="meeting-stream"></div>
+
+      <div id="meeting-summary" class="meeting-summary" hidden>
+        <div id="meeting-summary-body" class="meeting-summary-body"></div>
+        <div class="meeting-summary-foot">
+          <span id="meeting-summary-meta" class="meeting-summary-meta"></span>
+          <div class="toolbar-spacer"></div>
+          <button id="btn-meeting-copy-summary" class="tts-action-btn" type="button">⧉ Copy</button>
+          <button id="btn-meeting-resummarize" class="tts-action-btn" type="button">↻ Summarise again</button>
+        </div>
+      </div>
+
+      <div class="meeting-actions">
+        <button id="btn-meeting-start" class="primary-action-btn" title="Start recording the meeting">
+          <span id="btn-meeting-label">Start recording</span>
+        </button>
+        <button id="btn-meeting-pause" class="action-btn" title="Pause (keep the session)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1" />
+            <rect x="14" y="4" width="4" height="16" rx="1" />
+          </svg>
+        </button>
+        <button id="btn-meeting-copy" class="tts-action-btn" title="Copy the transcript">⧉ Copy</button>
+        <div class="toolbar-spacer"></div>
+        <button id="btn-meeting-open-dir" class="tts-action-btn" title="Open the transcripts folder">📁</button>
+      </div>
+    </div>
+
     <!-- Read activity panel — paste Vietnamese text, hear it read aloud -->
     <div id="read-panel" class="activity-panel" data-activity="read">
       <!-- Quick-pick: change voice without leaving the panel -->
       <div class="read-quick-row">
-        <span class="read-quick-label">Giọng:</span>
+        <span class="read-quick-label">Voice:</span>
         <select id="read-voice-quick" class="source-select"></select>
-        <button id="btn-read-tts-settings" class="read-quick-more" type="button" title="Mở cài đặt TTS đầy đủ">Chỉnh thêm…</button>
+        <button id="btn-read-tts-settings" class="read-quick-more" type="button" title="Open the full TTS settings">More…</button>
       </div>
-      <textarea id="read-input" placeholder="Dán hoặc gõ văn bản tiếng Việt để đọc to…"></textarea>
+      <textarea id="read-input" placeholder="Paste or type text to read aloud…"></textarea>
       <div id="read-output" class="read-output" style="display:none"></div>
       <div class="read-progress-bar"><div id="read-progress-fill"></div></div>
       <div class="read-controls">
-        <button id="btn-read-play" class="read-btn read-btn-primary" type="button">▶ Đọc</button>
-        <button id="btn-read-pause" class="read-btn" type="button" style="display:none">⏸ Tạm dừng</button>
-        <button id="btn-read-stop" class="read-btn" type="button" style="display:none">⏹ Dừng</button>
+        <button id="btn-read-play" class="read-btn read-btn-primary" type="button">▶ Read</button>
+        <button id="btn-read-pause" class="read-btn" type="button" style="display:none">⏸ Pause</button>
+        <button id="btn-read-stop" class="read-btn" type="button" style="display:none">⏹ Stop</button>
         <span id="read-progress" class="read-progress"></span>
       </div>
       <div id="read-hint" class="read-hint"></div>
@@ -308,7 +392,7 @@
         <button class="settings-card" data-screen="tab-translation" id="card-translation">
           <span class="settings-card-icon">🌐</span>
           <span class="settings-card-text">
-            <span class="settings-card-title">Engine dịch</span>
+            <span class="settings-card-title">Translation engine</span>
             <span class="settings-card-sub" id="card-translation-sub">—</span>
           </span>
           <span class="settings-card-chevron">›</span>
@@ -316,24 +400,32 @@
         <button class="settings-card" data-screen="tab-tts" id="card-tts">
           <span class="settings-card-icon">🔊</span>
           <span class="settings-card-text">
-            <span class="settings-card-title">Giọng đọc (TTS)</span>
+            <span class="settings-card-title">Voice (TTS)</span>
             <span class="settings-card-sub" id="card-tts-sub">—</span>
+          </span>
+          <span class="settings-card-chevron">›</span>
+        </button>
+        <button class="settings-card" data-screen="tab-summary" id="card-summary">
+          <span class="settings-card-icon">📝</span>
+          <span class="settings-card-text">
+            <span class="settings-card-title">Meeting summary</span>
+            <span class="settings-card-sub" id="card-summary-sub">—</span>
           </span>
           <span class="settings-card-chevron">›</span>
         </button>
         <button class="settings-card" data-screen="tab-display" id="card-display">
           <span class="settings-card-icon">🎨</span>
           <span class="settings-card-text">
-            <span class="settings-card-title">Hiển thị</span>
-            <span class="settings-card-sub" id="card-display-sub">Font, kích thước chữ</span>
+            <span class="settings-card-title">Display</span>
+            <span class="settings-card-sub" id="card-display-sub">Font and text size</span>
           </span>
           <span class="settings-card-chevron">›</span>
         </button>
         <button class="settings-card" data-screen="tab-about" id="card-about">
           <span class="settings-card-icon">ℹ️</span>
           <span class="settings-card-text">
-            <span class="settings-card-title">Giới thiệu</span>
-            <span class="settings-card-sub" id="card-about-sub">Phiên bản, cập nhật</span>
+            <span class="settings-card-title">About</span>
+            <span class="settings-card-sub" id="card-about-sub">Version and updates</span>
           </span>
           <span class="settings-card-chevron">›</span>
         </button>
@@ -341,7 +433,7 @@
 
       <!-- Detail: Translation -->
       <div class="settings-tab-content" id="tab-translation">
-        <button class="settings-back-row" data-screen="settings-home">‹ Cài đặt</button>
+        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
         <div class="settings-section">
           <span class="field-label">Engine</span>
           <select id="select-translation-mode">
@@ -661,12 +753,63 @@
       </div>
 
       <!-- Tab: Display -->
+      <div class="settings-tab-content" id="tab-summary">
+        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <div class="settings-section">
+          <span class="field-label">Model that writes the summary</span>
+          <select id="select-summary-provider">
+            <option value="openai">⚡ OpenAI</option>
+            <option value="qwen">🌏 Qwen (DashScope)</option>
+            <option value="gemini">🔷 Google Gemini</option>
+          </select>
+          <p class="hint">Reuses the translation engine's API key. Gemini has its own key below.</p>
+        </div>
+
+        <div class="settings-section">
+          <span class="field-label">Model name</span>
+          <input type="text" id="input-summary-model" placeholder="e.g. gpt-4.1-mini" autocomplete="off" />
+          <p class="hint">
+            Leave empty to use the selected provider's default. Model line-ups change
+            often, so this is left for you to fill in.
+          </p>
+        </div>
+
+        <div class="settings-section" id="section-gemini-key" style="display:none">
+          <span class="field-label">Google Gemini API Key</span>
+          <div class="input-group">
+            <input type="password" id="input-gemini-key" placeholder="AIza..." autocomplete="off" />
+            <button id="btn-toggle-gemini-key" class="icon-btn" type="button" title="Show / hide">👁</button>
+          </div>
+          <p class="hint">Get a key at <a href="https://aistudio.google.com/apikey" id="link-gemini">aistudio.google.com</a></p>
+        </div>
+
+        <div class="settings-section">
+          <span class="field-label">Summary language</span>
+          <input type="text" id="input-summary-language" placeholder="English" autocomplete="off" />
+        </div>
+
+        <div class="settings-section">
+          <label class="checkbox-option">
+            <input type="checkbox" id="check-summary-auto" checked />
+            <span class="checkbox-label">Summarise automatically when a meeting ends</span>
+          </label>
+          <p class="hint">Switch off to trigger it yourself and keep token spend under control.</p>
+        </div>
+
+        <div class="settings-section">
+          <span class="field-label">Custom summary instructions</span>
+          <textarea id="input-summary-prompt" rows="4"
+            placeholder="Empty = built-in template (Overview · Decisions · Action items · Open questions)"></textarea>
+          <p class="hint">Anything here replaces the built-in template entirely.</p>
+        </div>
+      </div>
+
       <div class="settings-tab-content" id="tab-display">
-        <button class="settings-back-row" data-screen="settings-home">‹ Cài đặt</button>
+        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
         <div class="settings-section">
           <div class="slider-field">
-            <span class="field-label">Opacity</span>
-            <input type="range" id="range-opacity" min="20" max="100" value="85" />
+            <span class="field-label">Interface opacity</span>
+            <input type="range" id="range-opacity" min="70" max="100" value="100" />
             <span id="opacity-value" class="range-value">85%</span>
           </div>
           <div class="slider-field">
@@ -684,11 +827,39 @@
             <span class="checkbox-label">Show original text</span>
           </label>
         </div>
+
+        <!-- On-screen subtitles — a second window: transparent, click-through -->
+        <div class="settings-section">
+          <span class="field-label">On-screen subtitles</span>
+          <p class="hint">
+            Splits the spoken line out into a transparent strip pinned to the bottom of the
+            screen, the way film subtitles sit. The mouse passes straight through, so you can
+            still scrub and pause the video.
+          </p>
+          <div class="slider-field">
+            <span class="field-label">Subtitle text size</span>
+            <input type="range" id="range-subtitle-font" min="16" max="72" value="30" />
+            <span id="subtitle-font-value" class="range-value">30px</span>
+          </div>
+          <div class="slider-field">
+            <span class="field-label">Keep a line on screen for</span>
+            <input type="range" id="range-subtitle-hold" min="0" max="15" value="5" />
+            <span id="subtitle-hold-value" class="range-value">5s</span>
+          </div>
+          <label class="checkbox-option" style="margin-top: 8px;">
+            <input type="checkbox" id="check-subtitle-original" checked />
+            <span class="checkbox-label">Show the original line above</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="check-subtitle-boxed" />
+            <span class="checkbox-label">Dim plate instead of outlined text</span>
+          </label>
+        </div>
       </div>
 
       <!-- Tab: TTS -->
       <div class="settings-tab-content" id="tab-tts">
-        <button class="settings-back-row" data-screen="settings-home">‹ Cài đặt</button>
+        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
         <div class="settings-section">
           <span class="field-label">Provider</span>
           <select id="select-tts-provider">
@@ -712,7 +883,7 @@
           <div class="field">
             <span class="field-label">Voice</span>
             <select id="select-edge-voice">
-              <option value="vi-VN-HoaiMyNeural">HoaiMy — Nữ 🇻🇳</option>
+              <option value="vi-VN-HoaiMyNeural">HoaiMy  — Female 🇻🇳</option>
               <option value="vi-VN-NamMinhNeural">NamMinh — Nam 🇻🇳</option>
               <option value="en-US-JennyNeural">Jenny — Female 🇺🇸</option>
               <option value="en-US-GuyNeural">Guy — Male 🇺🇸</option>
@@ -784,7 +955,7 @@
             <span class="field-label">Voice</span>
             <select id="select-tiktok-voice">
               <optgroup label="🇻🇳 Vietnamese">
-                <option value="BV074_streaming">Nữ (vi)</option>
+                <option value="BV074_streaming">Female (vi)</option>
                 <option value="BV075_streaming">Nam (vi)</option>
               </optgroup>
               <optgroup label="🇺🇸 English">
@@ -855,9 +1026,9 @@
             <span class="field-label">Voice</span>
             <select id="select-google-voice">
               <optgroup label="🇻🇳 Vietnamese">
-                <option value="vi-VN-Chirp3-HD-Aoede">Aoede — Nữ</option>
-                <option value="vi-VN-Chirp3-HD-Kore">Kore — Nữ</option>
-                <option value="vi-VN-Chirp3-HD-Leda">Leda — Nữ</option>
+                <option value="vi-VN-Chirp3-HD-Aoede">Aoede  — Female</option>
+                <option value="vi-VN-Chirp3-HD-Kore">Kore  — Female</option>
+                <option value="vi-VN-Chirp3-HD-Leda">Leda  — Female</option>
                 <option value="vi-VN-Chirp3-HD-Charon">Charon — Nam</option>
                 <option value="vi-VN-Chirp3-HD-Fenrir">Fenrir — Nam</option>
                 <option value="vi-VN-Chirp3-HD-Puck">Puck — Nam</option>
@@ -915,7 +1086,7 @@
 
       <!-- Tab: About -->
       <div class="settings-tab-content" id="tab-about">
-        <button class="settings-back-row" data-screen="settings-home">‹ Cài đặt</button>
+        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
         <div class="settings-section about-info">
           <div class="about-app-header">
             <span class="about-app-name">My Translator</span>
@@ -976,17 +1147,19 @@
   <!-- ═══════════════════ SHORTCUT SHEET ═══════════════════ -->
   <div id="shortcut-sheet" class="modal-overlay" style="display:none">
     <div class="modal-card shortcut-card">
-      <h3 class="shortcut-title">⌨️ Phím tắt</h3>
+      <h3 class="shortcut-title">⌨️ Keyboard shortcuts</h3>
       <table class="shortcut-table">
-        <tr><td><kbd>⌘↩</kbd></td><td>Bắt đầu / Dừng dịch</td></tr>
-        <tr><td><kbd>⌘1</kbd> / <kbd>⌘2</kbd> / <kbd>⌘3</kbd></td><td>Nguồn: System / Mic / Cả hai</td></tr>
-        <tr><td><kbd>⌘T</kbd></td><td>Bật/tắt đọc bản dịch (TTS)</td></tr>
-        <tr><td><kbd>⌘,</kbd></td><td>Mở Cài đặt</td></tr>
-        <tr><td><kbd>⌘P</kbd></td><td>Ghim cửa sổ nổi</td></tr>
-        <tr><td><kbd>⌘D</kbd></td><td>Compact — ẩn thanh công cụ</td></tr>
-        <tr><td><kbd>⌘M</kbd></td><td>Thu nhỏ cửa sổ</td></tr>
-        <tr><td><kbd>Esc</kbd></td><td>Về màn hình chính / đóng bảng này</td></tr>
-        <tr><td><kbd>?</kbd></td><td>Mở bảng phím tắt</td></tr>
+        <tr><td><kbd>⌘↩</kbd></td><td>Start / stop translating</td></tr>
+        <tr><td><kbd>⌘1</kbd> / <kbd>⌘2</kbd> / <kbd>⌘3</kbd></td><td>Source: System / Mic / Both</td></tr>
+        <tr><td><kbd>⌘T</kbd></td><td>Toggle reading the translation aloud (TTS)</td></tr>
+        <tr><td><kbd>⌘U</kbd></td><td>Toggle on-screen subtitles</td></tr>
+        <tr><td><kbd>⌘⇧U</kbd></td><td>Lock / unlock subtitles for dragging</td></tr>
+        <tr><td><kbd>⌘,</kbd></td><td>Open Settings</td></tr>
+        <tr><td><kbd>⌘P</kbd></td><td>Keep the window on top</td></tr>
+        <tr><td><kbd>⌘D</kbd></td><td>Compact — hide the toolbars</td></tr>
+        <tr><td><kbd>⌘M</kbd></td><td>Minimise the window</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Back to the main view / close this sheet</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Open this shortcut sheet</td></tr>
       </table>
     </div>
   </div>
@@ -1046,14 +1219,11 @@
     </div>
   </div>
 
+  <!-- Classic script: must define window.__TAURI__ before any module runs. -->
   <script src="/js/tauri-mock.js"></script>
-  <script type="module" src="/js/settings.js"></script>
-  <script type="module" src="/js/ui.js"></script>
-  <script type="module" src="/js/soniox.js"></script>
-  <script type="module" src="/js/elevenlabs-tts.js"></script>
-  <script type="module" src="/js/google-tts.js"></script>
-  <script type="module" src="/js/updater.js"></script>
-  <script type="module" src="/js/audio-player.js"></script>
+  <!-- Single entry point. app.js imports the controllers, which import the
+       engines, TTS providers and UI modules — listing those here too would
+       just duplicate the graph. -->
   <script type="module" src="/js/app.js"></script>
 </body>
 

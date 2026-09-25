@@ -36,6 +36,14 @@ pub struct SessionData {
     pub ended_at: Option<String>,
     pub title: String,
     pub engine: String,
+    /// How the session was recorded: "live" (glance-at-a-video translation) or
+    /// "meeting" (recorded for the record, summarised afterwards). Defaulted so
+    /// session files written before meeting mode still deserialize.
+    #[serde(default = "default_kind")]
+    pub kind: String,
+    /// Meeting summary, written after the session ends. Empty until then.
+    #[serde(default)]
+    pub summary: String,
     pub source_lang: String,
     pub target_lang: String,
     pub duration_sec: u64,
@@ -47,6 +55,8 @@ pub struct SessionListItem {
     pub id: String,
     pub title: String,
     pub engine: String,
+    pub kind: String,
+    pub has_summary: bool,
     pub source_lang: String,
     pub target_lang: String,
     pub created_at: String,
@@ -61,6 +71,10 @@ pub struct SessionListItem {
 pub struct SessionReadResult {
     pub md: String,
     pub json: SessionData,
+}
+
+fn default_kind() -> String {
+    "live".to_string()
 }
 
 // ─── Path helpers ────────────────────────────────────────────────────────
@@ -175,6 +189,8 @@ pub fn list_sessions(app: AppHandle) -> Result<Vec<SessionListItem>, String> {
             id: data.id,
             title: data.title,
             engine: data.engine,
+            kind: data.kind,
+            has_summary: !data.summary.trim().is_empty(),
             source_lang: data.source_lang,
             target_lang: data.target_lang,
             created_at: data.created_at,
@@ -204,6 +220,8 @@ pub fn list_sessions(app: AppHandle) -> Result<Vec<SessionListItem>, String> {
             id: stem.to_string(),
             title: stem.to_string(),
             engine: "legacy".into(),
+            kind: "live".into(),
+            has_summary: false,
             source_lang: String::new(),
             target_lang: String::new(),
             created_at,

@@ -11,6 +11,14 @@ export class QwenRealtimeClient {
         this.sessionId = null;
         this.channel = null;
         this.isConnected = false;
+        // The backend emits `closed` twice for a single drop: once for the
+        // server's close frame, then again from the unconditional
+        // `session_ended` after the WS loop exits. Only surface the first.
+        // Never reset: the engine builds a fresh client per connect attempt
+        // (see dropClient() + `new ...Client()`), so one flag per instance is
+        // exactly one drop. Reusing a client across connect() calls would
+        // silently swallow the second session's close.
+        this._closedEmitted = false;
 
         this.onStatusChange = () => {};
         this.onSegment = () => {};
@@ -90,6 +98,8 @@ export class QwenRealtimeClient {
                 break;
             case 'closed':
                 this.isConnected = false;
+                if (this._closedEmitted) break;
+                this._closedEmitted = true;
                 this.onClosed(evt.reason);
                 break;
         }

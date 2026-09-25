@@ -61,6 +61,16 @@ if (!window.__TAURI__ && location.port === '3111') {
         { short_name: 'en-GB-SoniaNeural', friendly_name: 'Sonia', gender: 'Female', locale: 'en-GB' },
     ]);
 
+    // Subtitle overlay state, exposed on window so the UI suite can assert that
+    // toggling actually reached the backend instead of only flipping a class.
+    const mockSubtitle = { open: false, locked: true, lastLine: null, style: null };
+    window.__mockSubtitle = mockSubtitle;
+
+    // Records what the summariser was asked for, so the suite can assert the
+    // provider/model/key actually chosen rather than just "something happened".
+    const mockSummary = { lastRequest: null };
+    window.__mockSummary = mockSummary;
+
     window.__TAURI__ = {
         core: {
             invoke: async (cmd, args) => {
@@ -108,13 +118,51 @@ if (!window.__TAURI__ && location.port === '3111') {
                         return mockSilentWav;
                     case 'start_capture':
                     case 'stop_capture':
-                    case 'start_mic_capture':
-                    case 'stop_mic_capture':
                         return null;
-                    case 'list_transcripts':
-                        return [];
-                    case 'check_update':
+                    // Subtitle overlay: there is no second window in browser dev,
+                    // so track open/closed state in memory and let the main-window
+                    // controller (buttons, settings, cue throttling) be exercised.
+                    case 'subtitle_open':
+                        mockSubtitle.open = true;
                         return null;
+                    case 'subtitle_close':
+                        mockSubtitle.open = false;
+                        return null;
+                    case 'subtitle_is_open':
+                        return mockSubtitle.open;
+                    case 'subtitle_set_locked':
+                        mockSubtitle.locked = !!args?.locked;
+                        return null;
+                    case 'subtitle_push':
+                        mockSubtitle.lastLine = args?.line || null;
+                        return null;
+                    case 'subtitle_set_style':
+                        mockSubtitle.style = args?.style || null;
+                        return null;
+                    case 'subtitle_reset_position':
+                        return null;
+                    // Meeting summary: no network in browser dev, so echo a
+                    // fixed Markdown summary. Enough to exercise rendering,
+                    // persistence and the tab switch.
+                    case 'summarize_text': {
+                        mockSummary.lastRequest = args?.req || null;
+                        return {
+                            text: [
+                                '## Overview',
+                                'A test meeting in browser dev mode.',
+                                '',
+                                '## Decisions',
+                                '- Ship macOS first',
+                                '',
+                                '## Action items',
+                                '- @hieu renews the signing certificate',
+                            ].join('\n'),
+                            provider: args?.req?.provider || 'openai',
+                            model: args?.req?.model || 'mock-model',
+                            total_tokens: 1234,
+                            elapsed_ms: 900,
+                        };
+                    }
                     default:
                         console.warn('[tauri-mock] unhandled command:', cmd);
                         return null;
@@ -138,6 +186,14 @@ if (!window.__TAURI__ && location.port === '3111') {
                 close: async () => { window.close(); },
                 minimize: async () => {},
                 toggleMaximize: async () => {},
+                // Without these, init() throws at bindCloseHooks() and every
+                // later step (shortcuts, read mode, TTS wiring, updater) is
+                // silently skipped — the browser dev page looked half-dead.
+                scaleFactor: async () => 1,
+                startDragging: async () => {},
+                destroy: async () => {},
+                onCloseRequested: async () => () => {},
+                listen: async () => () => {},
             }),
         },
     };

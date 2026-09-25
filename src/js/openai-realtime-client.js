@@ -9,6 +9,14 @@ export class OpenAiRealtimeClient {
         this.channel = null;
         this.outputQueue = null;
         this.isConnected = false;
+        // The backend emits `closed` twice for a single drop: once for the
+        // server's close frame, then again from the unconditional
+        // `session_ended` after the WS loop exits. Only surface the first.
+        // Never reset: the engine builds a fresh client per connect attempt
+        // (see dropClient() + `new ...Client()`), so one flag per instance is
+        // exactly one drop. Reusing a client across connect() calls would
+        // silently swallow the second session's close.
+        this._closedEmitted = false;
 
         this.onStatusChange = () => {};
         // (sourceText, translatedText) — emitted when output sentence finalizes.
@@ -143,6 +151,8 @@ export class OpenAiRealtimeClient {
                 break;
             case 'closed':
                 this.isConnected = false;
+                if (this._closedEmitted) break;
+                this._closedEmitted = true;
                 this.onClosed(evt.reason);
                 break;
         }
