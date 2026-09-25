@@ -103,7 +103,7 @@ Click **Save & Close** when done.
 > 2. **Settings → Billing** → add a payment method and credits ($10 ≈ ~2.5 hours)
 > 3. **API keys** → **Create new secret key** → copy the key (`sk-...`)
 >
-> ⚠️ **Cost warning**: OpenAI Realtime is ~34× pricier than Soniox at provider list rates. Use it for high-stakes meetings; for everyday use, Soniox is the better default. See the [**OpenAI vs Soniox benchmark**](benchmark_openai_vs_soniox.md) for details.
+> ⚠️ **Cost warning**: OpenAI Realtime is ~34× pricier than Soniox at provider list rates. Use it for high-stakes meetings; for everyday use, Soniox is the better default. See the [**engine latency benchmarks**](../benchmarks/) for measured numbers.
 
 Once a valid OpenAI key is saved, the **OpenAI Realtime** engine becomes selectable in the dropdown:
 

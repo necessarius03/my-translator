@@ -91,7 +91,7 @@ OpenAI Realtime is the **premium** engine — it returns translated text **and**
 
 > ⚠️ **Cost warning**: OpenAI Realtime is roughly 34× pricier than Soniox. Use it for high-stakes meetings where translation quality and native voice matter. For general use, Soniox is the better default.
 >
-> 📊 See [**OpenAI Realtime vs Soniox benchmark**](benchmark_openai_vs_soniox.md) for a real-world comparison.
+> 📊 See the [**engine latency benchmarks**](../benchmarks/) for measured first-translation latency per engine.
 
 After pasting the OpenAI key in Settings, the **OpenAI Realtime** engine becomes selectable:
 
@@ -99,9 +99,9 @@ After pasting the OpenAI key in Settings, the **OpenAI Realtime** engine becomes
 
 ---
 
-## Step 5c — Get a Qwen LiveTranslate Flash API Key (Optional, free preview)
+## Step 5c — Get a Qwen LiveTranslate Flash API Key (Optional, paid)
 
-Qwen LiveTranslate Flash (Alibaba DashScope) is the **free preview** engine — fastest of the three (~4 s first token), supports **60+ languages**, returns translated text only (no native voice, no source-transcript panel).
+Qwen LiveTranslate Flash (Alibaba DashScope) is the fastest of the three (~4 s first token), supports **60+ languages**, and returns translated text only (no native voice, no source-transcript panel). It is **paid** — ~$7.5 per 1M audio input tokens as listed in Model Studio (2026-09).
 
 > ⚠️ **IMPORTANT — must pick Singapore region.** The app connects to the international endpoint `dashscope-intl.aliyuncs.com`. Keys created in other regions (China Beijing, Hong Kong, US Virginia, Germany Frankfurt) are rejected and the app raises `WebSocket error` the moment you press Start.
 
@@ -118,14 +118,15 @@ Qwen LiveTranslate Flash (Alibaba DashScope) is the **free preview** engine — 
 > - **Must pick a source language** before Start. Unlike Soniox/OpenAI which auto-detect, Qwen Live needs the source language up front — the source picker automatically hides "Auto-detect" when this engine is selected.
 > - **No dual-panel view** (the model returns translation only, no source transcript). Translation-only display.
 > - **No native voice output / custom TTS** — avoids the speaker → mic feedback loop.
-> - Currently in **free preview**. Pricing may change once it leaves preview — watch Alibaba Cloud announcements.
+> - **The account must be able to run inference**, not just hold a key. A key that authenticates fine still fails with `Model access denied` until Model Studio is fully activated (identity verification, a payment method, and a token plan). Check `TokenPlan` and `Usage & Billing` in the console.
 
 ### Troubleshooting `WebSocket error` with Qwen
 
 | Symptom | Common cause | Fix |
 | --- | --- | --- |
 | `WebSocket error` immediately on Start | Key created in a non-Singapore region | Recreate the key in Singapore (see step 2 above) |
-| Error after ~5–10 seconds | Right region but Qwen Live model not enabled | Model Studio → Model Square → enable `qwen3-livetranslate-flash-realtime` |
+| Error after ~5–10 seconds | Right region but the model is not enabled | Model Studio → search the model → enable `qwen3.5-livetranslate-flash-realtime` |
+| Connects, then drops with `Model access denied` (close code 1007) | Account has no inference entitlement — the key authenticates but cannot call any model | Model Studio → `TokenPlan` + `Usage & Billing`: complete identity verification, add a payment method, activate a token plan |
 | Translates one sentence then stalls | Source language left on "auto" | Settings → Source language → pick the actual language (e.g. Japanese) |
 | Flaky errors | Network blocks `dashscope-intl.aliyuncs.com` (corp firewall / VPN) | Try a different network (4G/5G) or disable VPN |
 
@@ -147,7 +148,7 @@ Qwen LiveTranslate Flash (Alibaba DashScope) is the **free preview** engine — 
 |------|-------|---------|------|--------------|-------------------|----------|
 | ☁️ **Soniox** | ~2 s | 9/10 | ~$0.12/hr | Via TTS (free–$8/hr) | ✅ Yes (dual panel) | Required |
 | ⚡ **OpenAI Realtime** | ~1.5 s | 9.5/10, very idiomatic | **~$4/hr** | Off by default | ✅ Yes (dual panel) | Required |
-| 🌏 **Qwen LiveTranslate Flash** | ~4 s | 8/10, 60+ languages | **Free (preview)** | ❌ None | ❌ None (translation only) | Required |
+| 🌏 **Qwen LiveTranslate Flash** | ~4 s | 8/10, 60+ languages | ~$7.5/1M audio tokens | ❌ None | ❌ None (translation only) | Required |
 | 🖥️ **Local MLX** | ~10 s | 7/10 | Free | Via TTS | ✅ Yes | Not needed |
 
 6. Click **Save & Close**

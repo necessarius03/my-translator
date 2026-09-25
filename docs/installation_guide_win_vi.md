@@ -103,7 +103,7 @@ Nhấn **Save & Close** khi xong.
 > 2. **Settings → Billing** → thêm phương thức thanh toán và nạp credit ($10 ≈ ~2.5 giờ)
 > 3. **API keys** → **Create new secret key** → copy key (`sk-...`)
 >
-> ⚠️ **Cảnh báo chi phí**: OpenAI Realtime đắt hơn Soniox khoảng 34 lần. Phù hợp cho cuộc họp quan trọng cần chất lượng tốt nhất; dùng hàng ngày nên chọn Soniox. Xem [**Benchmark OpenAI vs Soniox**](benchmark_openai_vs_soniox_vi.md) để có chi tiết.
+> ⚠️ **Cảnh báo chi phí**: OpenAI Realtime đắt hơn Soniox khoảng 34 lần. Phù hợp cho cuộc họp quan trọng cần chất lượng tốt nhất; dùng hàng ngày nên chọn Soniox. Xem [**benchmark độ trễ các engine**](../benchmarks/) để có số liệu đo.
 
 Sau khi lưu OpenAI key hợp lệ, engine **OpenAI Realtime** sẽ chọn được trong dropdown:
 

@@ -9,7 +9,7 @@ Hướng dẫn từng bước cài đặt và sử dụng **My Translator** trê
 - macOS 13 trở lên (Apple Silicon — chip M1/M2/M3/M4)
 - **Soniox** (khuyên dùng): API key của [Soniox](https://soniox.com) (trả theo dùng, ~$0.12/giờ)
 - **OpenAI Realtime** (cao cấp): API key của [OpenAI](https://platform.openai.com) (~$4/giờ — đắt hơn nhiều, nhưng có sẵn giọng nói dịch)
-- **Qwen LiveTranslate Flash** (miễn phí preview): API key DashScope từ [Alibaba Cloud Model Studio](https://bailian.console.alibabacloud.com) (region **Singapore**, 60+ ngôn ngữ, nhanh nhất, text-only)
+- **Qwen LiveTranslate Flash** (trả phí): API key DashScope từ [Alibaba Cloud Model Studio](https://bailian.console.alibabacloud.com) (region **Singapore**, 60+ ngôn ngữ, nhanh nhất, text-only)
 - **Chế độ Local**: ~5 GB dung lượng ổ cứng (cho mô hình AI, tải một lần)
 - **Thuyết minh TTS** (tuỳ chọn, dành cho engine text): Xem [Hướng dẫn TTS](tts_guide_vi.md)
 
@@ -92,7 +92,7 @@ OpenAI Realtime là engine **cao cấp** — trả về cả văn bản dịch *
 
 > ⚠️ **Cảnh báo chi phí**: OpenAI Realtime đắt hơn Soniox khoảng 34 lần. Phù hợp cho cuộc họp quan trọng cần chất lượng dịch và giọng nói tốt nhất. Dùng hàng ngày, Soniox vẫn là lựa chọn mặc định tốt hơn.
 >
-> 📊 Xem [**Benchmark OpenAI Realtime vs Soniox**](benchmark_openai_vs_soniox_vi.md) để so sánh thực tế.
+> 📊 Xem [**benchmark độ trễ các engine**](../benchmarks/) để biết số liệu đo thực tế.
 
 Sau khi dán OpenAI key vào Settings, engine **OpenAI Realtime** sẽ chọn được:
 
@@ -100,9 +100,9 @@ Sau khi dán OpenAI key vào Settings, engine **OpenAI Realtime** sẽ chọn đ
 
 ---
 
-## Bước 5c — Lấy API Key Qwen LiveTranslate Flash (Tuỳ chọn, miễn phí)
+## Bước 5c — Lấy API Key Qwen LiveTranslate Flash (Tuỳ chọn, trả phí)
 
-Qwen LiveTranslate Flash (Alibaba DashScope) là engine **miễn phí trong giai đoạn preview** — nhanh nhất trong ba engine (~4 giây), hỗ trợ **60+ ngôn ngữ**, chỉ trả về văn bản dịch (không có giọng nói, không có dual-panel source).
+Qwen LiveTranslate Flash (Alibaba DashScope) là engine nhanh nhất trong ba engine (~4 giây), hỗ trợ **60+ ngôn ngữ**, chỉ trả về văn bản dịch (không có giọng nói, không có dual-panel source). Engine này **trả phí** — khoảng $7.5 cho mỗi 1M audio input token theo bảng giá Model Studio (2026-09). Giai đoạn preview miễn phí mà engine này được xây dựng ban đầu đã kết thúc.
 
 > ⚠️ **QUAN TRỌNG — phải chọn region Singapore.** App kết nối tới endpoint quốc tế `dashscope-intl.aliyuncs.com`. Key tạo ở region khác (China Beijing, Hong Kong, US Virginia, Germany Frankfurt) sẽ bị reject và app báo `WebSocket error` ngay khi bấm Start.
 
@@ -119,14 +119,15 @@ Qwen LiveTranslate Flash (Alibaba DashScope) là engine **miễn phí trong giai
 > - **Phải chọn source language** trước khi Start. Không như Soniox/OpenAI có auto-detect, Qwen Live cần biết rõ ngôn ngữ nguồn — picker source language sẽ tự động ẩn option "Auto-detect" khi chọn engine này.
 > - **Không có dual panel** (model chỉ trả về translation, không có source transcript). Chỉ hiển thị bản dịch.
 > - **Không có TTS giọng nói** — tránh feedback loop (loa → mic → loa…).
-> - Hiện ở giai đoạn **preview (miễn phí)**. Giá có thể thay đổi khi rời preview — theo dõi thông báo của Alibaba Cloud.
+> - **Tài khoản phải có quyền gọi inference**, không chỉ cần có key. Key xác thực hợp lệ vẫn có thể bị `Model access denied` nếu Model Studio chưa kích hoạt đầy đủ (xác minh danh tính, phương thức thanh toán, gói token). Kiểm tra `TokenPlan` và `Usage & Billing` trong console.
 
 ### Khắc phục lỗi `WebSocket error` khi dùng Qwen
 
 | Triệu chứng | Nguyên nhân thường gặp | Cách sửa |
 | --- | --- | --- |
 | Báo `WebSocket error` ngay khi bấm Start | Key tạo ở region khác Singapore | Tạo lại key ở region Singapore (xem mục 2 ở trên) |
-| Báo lỗi sau ~5–10 giây | Key đúng region nhưng chưa kích hoạt model Qwen Live | Vào Model Studio → Model Square → bật `qwen3-livetranslate-flash-realtime` |
+| Báo lỗi sau ~5–10 giây | Key đúng region nhưng chưa bật model | Model Studio → tìm model → bật `qwen3.5-livetranslate-flash-realtime` |
+| Nối được rồi rớt kèm `Model access denied` (close code 1007) | Tài khoản chưa có quyền gọi inference — key xác thực được nhưng không gọi được model nào | Model Studio → `TokenPlan` + `Usage & Billing`: xác minh danh tính, thêm phương thức thanh toán, kích hoạt gói token |
 | Dịch được 1 câu rồi stall | Source language để "auto" thay vì chọn rõ ngôn ngữ | Settings → Source language → chọn cụ thể (vd: Japanese) |
 | Báo lỗi không ổn định | Mạng chặn `dashscope-intl.aliyuncs.com` (firewall công ty / VPN) | Thử mạng khác (4G/5G) hoặc tắt VPN |
 
@@ -148,7 +149,7 @@ Qwen LiveTranslate Flash (Alibaba DashScope) là engine **miễn phí trong giai
 |--------|--------|------------|---------|-----------|-------------------|----------|
 | ☁️ **Soniox** | ~2 giây | 9/10 | ~$0.12/giờ | Qua TTS (miễn phí–$8/giờ) | ✅ Có (dual panel) | Cần |
 | ⚡ **OpenAI Realtime** | ~1.5 giây | 9.5/10, dịch rất tự nhiên | **~$4/giờ** | Tắt mặc định | ✅ Có (dual panel) | Cần |
-| 🌏 **Qwen LiveTranslate Flash** | ~4 giây | 8/10, 60+ ngôn ngữ | **Miễn phí (preview)** | ❌ Không có | ❌ Không có (chỉ dịch) | Cần |
+| 🌏 **Qwen LiveTranslate Flash** | ~4 giây | 8/10, 60+ ngôn ngữ | ~$7.5/1M audio token | ❌ Không có | ❌ Không có (chỉ dịch) | Cần |
 | 🖥️ **Local MLX** | ~10 giây | 7/10 | Miễn phí | Qua TTS | ✅ Có | Không cần |
 
 6. Bấm **Save & Close**
