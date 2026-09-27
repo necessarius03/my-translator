@@ -2456,6 +2456,7 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "uuid",
+ "window-vibrancy",
  "windows 0.58.0",
 ]
 
