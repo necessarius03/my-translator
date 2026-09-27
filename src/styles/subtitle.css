@@ -29,7 +29,8 @@ body {
   /* Cue size is pushed from settings as a CSS variable so a size change is one
      custom-property write, not a re-render. */
   --cue-size: 30px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
 }
 
 #frame {

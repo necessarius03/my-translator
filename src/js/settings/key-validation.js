@@ -3,6 +3,34 @@
  * every keystroke, plus an explicit live ping per provider.
  */
 
+/**
+ * Paint one key-status badge: state class, icon, and wording.
+ *
+ * The mark used to be a character glued to the front of the text ("✓ format
+ * ok"). That worked — ✓ is a normal glyph, not emoji, so it followed the theme
+ * — but it left the badge as the last place in the app drawing its own icon out
+ * of the font. One helper now owns the state, the glyph and the class together,
+ * so they cannot drift apart.
+ */
+const STATUS_ICON = { ok: 'i-check', bad: 'i-x', checking: 'i-loader' };
+
+function setKeyStatus(el, state, text) {
+    if (!el) return;
+    el.className = 'key-status ' + (state || '');
+    if (!state) {
+        el.textContent = '';
+        return;
+    }
+    const spin = state === 'checking' ? ' ic-spin' : '';
+    // Static icon markup; the text goes in as a node so a provider's message
+    // is never parsed as HTML.
+    el.innerHTML = `<svg class="ic ic-sm${spin}" viewBox="0 0 24 24">`
+        + `<use href="#${STATUS_ICON[state]}" /></svg>`;
+    const label = document.createElement('span');
+    label.textContent = text;
+    el.appendChild(label);
+}
+
 // Inline format check — runs on every keystroke. Cheap, no network.
 // Updates: per-field status badge + engine dropdown option enable/disable.
 export function refreshKeyStatus() {
@@ -16,13 +44,15 @@ export function refreshKeyStatus() {
 
     const sonioxStatus = document.getElementById('key-status-soniox');
     if (sonioxStatus) {
-        sonioxStatus.className = 'key-status ' + (sonioxKey === '' ? '' : sonioxOk ? 'ok' : 'bad');
-        sonioxStatus.textContent = sonioxKey === '' ? '' : sonioxOk ? '✓ format ok' : '✗ check format';
+        setKeyStatus(sonioxStatus,
+            sonioxKey === '' ? '' : sonioxOk ? 'ok' : 'bad',
+            sonioxOk ? 'format ok' : 'check format');
     }
     const openaiStatus = document.getElementById('key-status-openai');
     if (openaiStatus) {
-        openaiStatus.className = 'key-status ' + (openaiKey === '' ? '' : openaiOk ? 'ok' : 'bad');
-        openaiStatus.textContent = openaiKey === '' ? '' : openaiOk ? '✓ format ok' : '✗ should start with sk-';
+        setKeyStatus(openaiStatus,
+            openaiKey === '' ? '' : openaiOk ? 'ok' : 'bad',
+            openaiOk ? 'format ok' : 'should start with sk-');
     }
 
     // Engines that need a key stay SELECTABLE even when it's missing —
@@ -35,11 +65,11 @@ export function refreshKeyStatus() {
         const openaiOpt = select.querySelector('option[value="openai"]');
         if (sonioxOpt) {
             sonioxOpt.disabled = false;
-            sonioxOpt.textContent = sonioxOk ? '☁️ Soniox' : '☁️ Soniox — key required';
+            sonioxOpt.textContent = sonioxOk ? 'Soniox' : 'Soniox — key required';
         }
         if (openaiOpt) {
             openaiOpt.disabled = false;
-            openaiOpt.textContent = openaiOk ? '⚡ OpenAI Realtime' : '⚡ OpenAI Realtime — key required';
+            openaiOpt.textContent = openaiOk ? 'OpenAI Realtime' : 'OpenAI Realtime — key required';
         }
     }
 }
@@ -53,24 +83,20 @@ export async function testConnection(provider) {
     const inputId = provider === 'soniox' ? 'input-api-key' : 'input-openai-key';
     const key = document.getElementById(inputId)?.value.trim() || '';
     if (!key) {
-        statusEl.className = 'key-status bad';
-        statusEl.textContent = '✗ empty';
+        setKeyStatus(statusEl, 'bad', 'empty');
         return;
     }
 
     btn.disabled = true;
-    statusEl.className = 'key-status checking';
-    statusEl.textContent = '… testing';
+    setKeyStatus(statusEl, 'checking', 'testing…');
 
     try {
         const ok = provider === 'soniox'
             ? await pingSoniox(key)
             : await pingOpenAi(key);
-        statusEl.className = 'key-status ' + (ok ? 'ok' : 'bad');
-        statusEl.textContent = ok ? '✓ connected' : '✗ rejected';
+        setKeyStatus(statusEl, ok ? 'ok' : 'bad', ok ? 'connected' : 'rejected');
     } catch (e) {
-        statusEl.className = 'key-status bad';
-        statusEl.textContent = '✗ ' + (e?.message || 'failed');
+        setKeyStatus(statusEl, 'bad', e?.message || 'failed');
     } finally {
         btn.disabled = false;
     }

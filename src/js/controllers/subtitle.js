@@ -128,7 +128,7 @@ export class SubtitleController {
         }
         const lock = document.getElementById('btn-subtitle-lock');
         if (lock) {
-            lock.textContent = this.locked ? '🔓 Unlock to move subtitles' : '🔒 Lock again (click-through)';
+            lock.textContent = this.locked ? 'Unlock to move subtitles' : 'Lock again (click-through)';
             lock.disabled = !this.open;
         }
         const reset = document.getElementById('btn-subtitle-reset');

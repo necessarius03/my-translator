@@ -24,10 +24,10 @@ const { invoke } = window.__TAURI__.core;
 const TRANSCRIBE_ONLY_ENGINES = new Set(['soniox']);
 
 const ENGINE_NAMES = {
-    soniox: '☁️ Soniox',
-    openai: '⚡ OpenAI Realtime',
-    qwen: '🌏 Qwen LiveTranslate',
-    local: '🖥️ Local MLX',
+    soniox: 'Soniox',
+    openai: 'OpenAI Realtime',
+    qwen: 'Qwen LiveTranslate',
+    local: 'Local MLX',
 };
 
 /** Where each summary provider's API key lives in settings. */
@@ -478,7 +478,7 @@ export class MeetingController {
         const resum = document.getElementById('btn-meeting-resummarize');
         if (resum) {
             resum.disabled = this.summarizing;
-            resum.textContent = this.summarizing ? '… summarising' : '↻ Summarise again';
+            resum.textContent = this.summarizing ? 'Summarising…' : 'Summarise again';
         }
 
         this.renderClock();

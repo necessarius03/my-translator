@@ -5,20 +5,134 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Translator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- No webfont: a desktop app must paint its first frame without waiting on a
+       font CDN, and must keep its typeface offline. The stack in --font-sans
+       resolves to SF Pro on macOS and Segoe UI Variable on Windows. -->
   <link rel="stylesheet" href="styles/main.css" />
 </head>
 
 <body>
+
+  <!-- ═══════════════ ICON SPRITE ═══════════════
+       Lucide glyphs (ISC licence), inlined rather than fetched: a desktop app
+       must draw its chrome offline and without a network round-trip, and the
+       Artifact-style CDN route is not available to a Tauri webview anyway.
+
+       Every symbol is a 24x24 outline with no width, stroke or stroke-width of
+       its own — those come from .ic / .ic-sm / .ic-md / .ic-lg in icons.css, so
+       one rule governs the weight of every icon in the app. See the size rule
+       at the top of that file before adding a symbol here.
+       ═══════════════════════════════════════════ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-mic" viewBox="0 0 24 24">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <path d="M12 19v3" />
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24">
+      <path d="M12 7v14" />
+      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+    </symbol>
+    <symbol id="i-library" viewBox="0 0 24 24">
+      <path d="m16 6 4 14" />
+      <path d="M12 6v14" />
+      <path d="M8 8v12" />
+      <path d="M4 4v16" />
+    </symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24">
+      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+    </symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24">
+      <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+    </symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+      <path d="M2 12h20" />
+    </symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24">
+      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="M6 3.5v17l14-8.5z" />
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="M20 6 9 17l-5-5" />
+    </symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24">
+      <path d="m15 18-6-6 6-6" />
+    </symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24">
+      <path d="m9 18 6-6-6-6" />
+    </symbol>
+    <symbol id="i-rotate-ccw" viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24">
+      <path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </symbol>
+    <symbol id="i-x-circle" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="m15 9-6 6" />
+      <path d="m9 9 6 6" />
+    </symbol>
+    <symbol id="i-loader" viewBox="0 0 24 24">
+      <path d="M12 2v4" />
+      <path d="m16.2 7.8 2.9-2.9" />
+      <path d="M18 12h4" />
+      <path d="m16.2 16.2 2.9 2.9" />
+      <path d="M12 18v4" />
+      <path d="m4.9 19.1 2.9-2.9" />
+      <path d="M2 12h4" />
+      <path d="m4.9 4.9 2.9 2.9" />
+    </symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" />
+    </symbol>
+  </svg>
   <!-- ═══════════════════ OVERLAY VIEW ═══════════════════ -->
   <div id="overlay-view" class="view active">
     <!-- Drag Region (title bar area) -->
     <div id="drag-region" data-tauri-drag-region>
       <div class="control-bar" data-tauri-drag-region>
         <button id="btn-settings" class="icon-btn" title="Settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-md" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="3" />
             <path
               d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -29,19 +143,19 @@
         <!-- Activity switcher — the 4 first-class spaces of the app -->
         <div class="activity-switcher">
           <button class="activity-tab active" data-activity="live" title="Live translation" type="button">
-            🎙<span class="activity-tab-text"> Live</span><span id="live-tab-badge" class="live-tab-badge"></span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-mic" /></svg><span class="activity-tab-text">Live</span><span id="live-tab-badge" class="live-tab-badge"></span>
           </button>
           <button class="activity-tab" data-activity="meeting" title="Meeting — record the minutes, then summarise" type="button">
-            👥<span class="activity-tab-text"> Meeting</span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-users" /></svg><span class="activity-tab-text">Meeting</span>
           </button>
-          <button class="activity-tab" data-activity="read" title="Read aloud (TTS)" type="button">📖<span class="activity-tab-text"> Read</span></button>
-          <button class="activity-tab" data-activity="library" title="Saved sessions" type="button">📚<span class="activity-tab-text"> Library</span></button>
+          <button class="activity-tab" data-activity="read" title="Read aloud (TTS)" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-book" /></svg><span class="activity-tab-text">Read</span></button>
+          <button class="activity-tab" data-activity="library" title="Saved sessions" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-library" /></svg><span class="activity-tab-text">Library</span></button>
         </div>
 
         <div class="toolbar-spacer" data-tauri-drag-region></div>
 
         <button id="btn-window-mode" class="icon-btn" title="Expand window">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-sm" viewBox="0 0 24 24">
             <polyline points="15 3 21 3 21 9" />
             <polyline points="9 21 3 21 3 15" />
             <line x1="21" y1="3" x2="14" y2="10" />
@@ -50,14 +164,14 @@
         </button>
 
         <button id="btn-pin" class="icon-btn active" title="Pin on top (always visible)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-sm" viewBox="0 0 24 24">
             <path d="M12 17v5" />
             <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76z" />
           </svg>
         </button>
 
         <button id="btn-close" class="icon-btn close-btn" title="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg class="ic ic-sm" viewBox="0 0 24 24">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -71,15 +185,15 @@
       <div class="live-status-row">
         <div class="engine-pill" id="engine-pill" title="Click to switch engine">
           <button class="engine-pill-btn active" data-engine-class="standard" type="button">
-            <span class="engine-pill-icon">☁️</span>
+            <span class="engine-pill-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-cloud" /></svg></span>
             <span class="engine-pill-label">Standard</span>
           </button>
           <button class="engine-pill-btn" data-engine-class="openai" type="button">
-            <span class="engine-pill-icon">⚡</span>
+            <span class="engine-pill-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-zap" /></svg></span>
             <span class="engine-pill-label">OpenAI</span>
           </button>
           <button class="engine-pill-btn" data-engine-class="qwen" type="button">
-            <span class="engine-pill-icon">🌏</span>
+            <span class="engine-pill-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-globe" /></svg></span>
             <span class="engine-pill-label">Qwen</span>
           </button>
         </div>
@@ -89,50 +203,49 @@
         </div>
         <span id="live-lang" class="live-lang" title="Language pair (change in Settings)"></span>
         <select id="select-audio-source" class="source-select" title="Audio source (⌘1/2/3)">
-          <option value="system">🔊 System</option>
-          <option value="microphone">🎤 Mic</option>
-          <option value="both">🔊+🎤 Both</option>
+          <option value="system">System audio</option>
+          <option value="microphone">Microphone</option>
+          <option value="both">System + Microphone</option>
         </select>
       </div>
 
       <div id="transcript-content" data-tauri-drag-region>
         <div class="transcript-placeholder">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            opacity="0.4">
+          <svg opacity="0.4" class="ic ic-lg" viewBox="0 0 24 24">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
             <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
             <line x1="12" y1="19" x2="12" y2="23" />
             <line x1="8" y1="23" x2="16" y2="23" />
           </svg>
-          <p>Press ▶ to start translating</p>
+          <p>Press Start to begin translating</p>
         </div>
       </div>
 
       <!-- Live action row: primary start/stop + pause + TTS + overflow menu -->
       <div class="live-action-row">
         <button id="btn-start" class="primary-action-btn" title="Start/Stop (⌘↩)">
-          <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <svg id="icon-play" class="ic ic-md ic-solid" viewBox="0 0 24 24">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
-          <svg id="icon-stop" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <svg id="icon-stop" style="display:none" class="ic ic-md ic-solid" viewBox="0 0 24 24">
             <rect x="4" y="4" width="16" height="16" rx="2" />
           </svg>
           <span id="btn-start-label">Start</span>
         </button>
 
         <button id="btn-pause" class="action-btn" title="Pause (keep session)" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <svg class="ic ic-md ic-solid" viewBox="0 0 24 24">
             <rect x="6" y="4" width="4" height="16" rx="1" />
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         </button>
 
         <button id="btn-tts" class="tts-action-btn" title="TTS Narration (⌘T)">
-          <svg id="icon-tts-off" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg id="icon-tts-off" class="ic ic-sm" viewBox="0 0 24 24">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             <line x1="9" y1="10" x2="15" y2="10" />
           </svg>
-          <svg id="icon-tts-on" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none">
+          <svg id="icon-tts-on" style="display:none" class="ic ic-sm" viewBox="0 0 24 24">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             <path d="M9 10h2" /><path d="M13 8v4" /><path d="M15 10h1" />
           </svg>
@@ -143,7 +256,7 @@
              screen. It sits next to TTS because both answer the same question —
              where the translation comes out. -->
         <button id="btn-subtitle" class="tts-action-btn subtitle-action-btn" title="Show on-screen subtitles (⌘U)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-md" viewBox="0 0 24 24">
             <rect x="2" y="5" width="20" height="14" rx="2" />
             <line x1="6" y1="14" x2="12" y2="14" />
             <line x1="15" y1="14" x2="18" y2="14" />
@@ -152,13 +265,13 @@
 
         <div class="more-menu-wrap">
           <button id="btn-more" class="icon-btn" title="More">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="ic ic-md ic-solid" viewBox="0 0 24 24">
               <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
             </svg>
           </button>
           <div id="more-menu" class="more-menu" style="display:none">
-            <button id="btn-copy" class="more-menu-item" type="button">📋 Copy transcript</button>
-            <button id="btn-clear" class="more-menu-item" type="button">🗑 Clear transcript</button>
+            <button id="btn-copy" class="more-menu-item" type="button">Copy transcript</button>
+            <button id="btn-clear" class="more-menu-item" type="button">Clear transcript</button>
             <div class="more-menu-sep"></div>
             <div class="more-menu-label">Display</div>
             <div class="floating-controls">
@@ -173,7 +286,7 @@
                 <button class="color-dot" data-color="#0E7490" title="Teal" style="background:#0E7490;"></button>
               </div>
               <button id="btn-view-mode" class="float-btn" title="Toggle dual view">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="ic ic-sm" viewBox="0 0 24 24">
                   <rect x="3" y="3" width="7" height="18" rx="1" />
                   <rect x="14" y="3" width="7" height="18" rx="1" />
                 </svg>
@@ -181,12 +294,12 @@
             </div>
             <div class="more-menu-sep"></div>
             <div class="more-menu-label">Subtitles</div>
-            <button id="btn-subtitle-lock" class="more-menu-item" type="button" disabled>🔓 Unlock to move subtitles</button>
-            <button id="btn-subtitle-reset" class="more-menu-item" type="button" disabled>⤓ Reset to bottom of screen</button>
+            <button id="btn-subtitle-lock" class="more-menu-item" type="button" disabled>Unlock to move subtitles</button>
+            <button id="btn-subtitle-reset" class="more-menu-item" type="button" disabled>Reset to bottom of screen</button>
             <div class="more-menu-sep"></div>
-            <button id="btn-compact" class="more-menu-item" type="button">⤢ Compact — hide the toolbars</button>
-            <button id="btn-auto-hide" class="more-menu-item" type="button">✓ Auto-hide while translating</button>
-            <button id="btn-shortcuts" class="more-menu-item" type="button">⌨️ Keyboard shortcuts</button>
+            <button id="btn-compact" class="more-menu-item" type="button">Compact — hide the toolbars</button>
+            <button id="btn-auto-hide" class="more-menu-item" type="button" role="menuitemcheckbox" aria-checked="false"><span class="more-menu-text">Auto-hide while translating</span><svg class="ic ic-sm more-menu-tick" viewBox="0 0 24 24"><use href="#i-check" /></svg></button>
+            <button id="btn-shortcuts" class="more-menu-item" type="button">Keyboard shortcuts</button>
           </div>
         </div>
       </div>
@@ -199,7 +312,7 @@
         <p class="engine-picker-title">Choose translation mode</p>
         <div class="engine-cards">
           <button class="engine-card" data-engine-class="standard" type="button">
-            <div class="engine-card-icon">☁️</div>
+            <div class="engine-card-icon"><svg class="ic ic-lg" viewBox="0 0 24 24"><use href="#i-cloud" /></svg></div>
             <div class="engine-card-name">Standard</div>
             <div class="engine-card-meta">Soniox / Local · ~$0.12/hr</div>
             <ul class="engine-card-feats">
@@ -209,7 +322,7 @@
             </ul>
           </button>
           <button class="engine-card" data-engine-class="openai" type="button">
-            <div class="engine-card-icon">⚡</div>
+            <div class="engine-card-icon"><svg class="ic ic-lg" viewBox="0 0 24 24"><use href="#i-zap" /></svg></div>
             <div class="engine-card-name">OpenAI Realtime</div>
             <div class="engine-card-meta">~$4/hr · text-only</div>
             <ul class="engine-card-feats">
@@ -219,7 +332,7 @@
             </ul>
           </button>
           <button class="engine-card" data-engine-class="qwen" type="button">
-            <div class="engine-card-icon">🌏</div>
+            <div class="engine-card-icon"><svg class="ic ic-lg" viewBox="0 0 24 24"><use href="#i-globe" /></svg></div>
             <div class="engine-card-name">Qwen LiveTranslate Flash</div>
             <div class="engine-card-meta">Free preview · text-only</div>
             <ul class="engine-card-feats">
@@ -256,9 +369,9 @@
         <span id="meeting-hint" class="meeting-hint"></span>
         <div class="toolbar-spacer"></div>
         <select id="select-meeting-source" class="source-select" title="Audio source">
-          <option value="both">🔊+🎤 Both</option>
-          <option value="system">🔊 System</option>
-          <option value="microphone">🎤 Micro</option>
+          <option value="both">System + Microphone</option>
+          <option value="system">System audio</option>
+          <option value="microphone">Microphone</option>
         </select>
       </div>
 
@@ -278,7 +391,7 @@
           <span id="meeting-summary-meta" class="meeting-summary-meta"></span>
           <div class="toolbar-spacer"></div>
           <button id="btn-meeting-copy-summary" class="tts-action-btn" type="button">⧉ Copy</button>
-          <button id="btn-meeting-resummarize" class="tts-action-btn" type="button">↻ Summarise again</button>
+          <button id="btn-meeting-resummarize" class="tts-action-btn" type="button">Summarise again</button>
         </div>
       </div>
 
@@ -287,14 +400,14 @@
           <span id="btn-meeting-label">Start recording</span>
         </button>
         <button id="btn-meeting-pause" class="action-btn" title="Pause (keep the session)" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <svg class="ic ic-md ic-solid" viewBox="0 0 24 24">
             <rect x="6" y="4" width="4" height="16" rx="1" />
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         </button>
         <button id="btn-meeting-copy" class="tts-action-btn" title="Copy the transcript">⧉ Copy</button>
         <div class="toolbar-spacer"></div>
-        <button id="btn-meeting-open-dir" class="tts-action-btn" title="Open the transcripts folder">📁</button>
+        <button id="btn-meeting-open-dir" class="tts-action-btn" title="Open the transcripts folder"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-folder" /></svg></button>
       </div>
     </div>
 
@@ -310,9 +423,9 @@
       <div id="read-output" class="read-output" style="display:none"></div>
       <div class="read-progress-bar"><div id="read-progress-fill"></div></div>
       <div class="read-controls">
-        <button id="btn-read-play" class="read-btn read-btn-primary" type="button">▶ Read</button>
-        <button id="btn-read-pause" class="read-btn" type="button" style="display:none">⏸ Pause</button>
-        <button id="btn-read-stop" class="read-btn" type="button" style="display:none">⏹ Stop</button>
+        <button id="btn-read-play" class="read-btn read-btn-primary" type="button"><svg class="ic ic-sm ic-solid" viewBox="0 0 24 24"><use href="#i-play" /></svg>Read</button>
+        <button id="btn-read-pause" class="read-btn" type="button" style="display:none">Pause</button>
+        <button id="btn-read-stop" class="read-btn" type="button" style="display:none">Stop</button>
         <span id="read-progress" class="read-progress"></span>
       </div>
       <div id="read-hint" class="read-hint"></div>
@@ -325,7 +438,7 @@
         <div class="sessions-search-row">
           <input id="input-session-search" type="text" placeholder="Search sessions..." class="sessions-search-input" />
           <button id="btn-open-transcripts" class="icon-btn small" title="Open saved transcripts folder in Finder">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="ic ic-sm" viewBox="0 0 24 24">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -337,14 +450,14 @@
       <div id="session-viewer" class="sessions-body" style="display:none">
         <div class="session-viewer-header">
           <button id="btn-session-back-to-list" class="icon-btn" title="Back to list">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="ic ic-md" viewBox="0 0 24 24">
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
           </button>
           <span id="session-viewer-title" class="session-viewer-title-text"></span>
           <button id="btn-session-edit-title" class="icon-btn small" title="Rename session">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="ic ic-sm" viewBox="0 0 24 24">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
@@ -352,7 +465,7 @@
           <button id="btn-session-export-srt" class="btn-secondary small" title="Export as .srt">.srt</button>
           <button id="btn-session-export-txt" class="btn-secondary small" title="Export as .txt">.txt</button>
           <button id="btn-session-copy" class="session-copy-btn" title="Copy content">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="ic ic-sm" viewBox="0 0 24 24">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
@@ -372,14 +485,14 @@
     <div id="settings-drag" data-tauri-drag-region>
       <div class="settings-header">
         <button id="btn-back" class="icon-btn" title="Back">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-md" viewBox="0 0 24 24">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
         </button>
         <h2>Settings</h2>
         <button id="btn-save-settings-top" class="icon-btn save-btn-top" title="Save & Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-md" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </button>
@@ -390,64 +503,59 @@
       <!-- Settings Home — 2-level wizard: cards navigate to detail screens -->
       <div class="settings-tab-content active" id="settings-home">
         <button class="settings-card" data-screen="tab-translation" id="card-translation">
-          <span class="settings-card-icon">🌐</span>
-          <span class="settings-card-text">
+                    <span class="settings-card-text">
             <span class="settings-card-title">Translation engine</span>
             <span class="settings-card-sub" id="card-translation-sub">—</span>
           </span>
-          <span class="settings-card-chevron">›</span>
+          <span class="settings-card-chevron"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-right" /></svg></span>
         </button>
         <button class="settings-card" data-screen="tab-tts" id="card-tts">
-          <span class="settings-card-icon">🔊</span>
-          <span class="settings-card-text">
+                    <span class="settings-card-text">
             <span class="settings-card-title">Voice (TTS)</span>
             <span class="settings-card-sub" id="card-tts-sub">—</span>
           </span>
-          <span class="settings-card-chevron">›</span>
+          <span class="settings-card-chevron"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-right" /></svg></span>
         </button>
         <button class="settings-card" data-screen="tab-summary" id="card-summary">
-          <span class="settings-card-icon">📝</span>
-          <span class="settings-card-text">
+                    <span class="settings-card-text">
             <span class="settings-card-title">Meeting summary</span>
             <span class="settings-card-sub" id="card-summary-sub">—</span>
           </span>
-          <span class="settings-card-chevron">›</span>
+          <span class="settings-card-chevron"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-right" /></svg></span>
         </button>
         <button class="settings-card" data-screen="tab-display" id="card-display">
-          <span class="settings-card-icon">🎨</span>
-          <span class="settings-card-text">
+                    <span class="settings-card-text">
             <span class="settings-card-title">Display</span>
             <span class="settings-card-sub" id="card-display-sub">Font and text size</span>
           </span>
-          <span class="settings-card-chevron">›</span>
+          <span class="settings-card-chevron"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-right" /></svg></span>
         </button>
         <button class="settings-card" data-screen="tab-about" id="card-about">
-          <span class="settings-card-icon">ℹ️</span>
-          <span class="settings-card-text">
+                    <span class="settings-card-text">
             <span class="settings-card-title">About</span>
             <span class="settings-card-sub" id="card-about-sub">Version and updates</span>
           </span>
-          <span class="settings-card-chevron">›</span>
+          <span class="settings-card-chevron"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-right" /></svg></span>
         </button>
       </div>
 
       <!-- Detail: Translation -->
       <div class="settings-tab-content" id="tab-translation">
-        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <button class="settings-back-row" data-screen="settings-home"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-left" /></svg>Settings</button>
         <div class="settings-section">
           <span class="field-label">Engine</span>
           <select id="select-translation-mode">
-            <option value="soniox">☁️ Soniox</option>
-            <option value="local">🖥️ Local MLX</option>
-            <option value="openai">⚡ OpenAI Realtime</option>
-            <option value="qwen">🌏 Qwen LiveTranslate Flash</option>
+            <option value="soniox">Soniox</option>
+            <option value="local">Local MLX</option>
+            <option value="openai">OpenAI Realtime</option>
+            <option value="qwen">Qwen LiveTranslate Flash</option>
           </select>
           <p class="hint" id="hint-mode-soniox">Cloud · 70+ languages · ~$0.12/hr</p>
           <p class="hint" id="hint-mode-local" style="display:none">Offline · free · ~3–4s delay</p>
           <p class="hint" id="hint-mode-openai" style="display:none">Cloud · 13 languages · text-only captions</p>
           <p class="hint" id="hint-mode-qwen" style="display:none">Cloud · 60+ languages · text-only · free preview · pick a source language</p>
           <div id="openai-cost-warning" class="cost-warning" style="display:none">
-            ⚠️ ~$4/hr — much pricier than Soniox. Charged to your OpenAI account.
+            <svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-warn" /></svg> ~$4/hr — much pricier than Soniox. Charged to your OpenAI account.
           </div>
         </div>
 
@@ -459,7 +567,7 @@
           <div class="input-group">
             <input type="password" id="input-api-key" placeholder="Enter your Soniox API key..." autocomplete="off" />
             <button id="btn-toggle-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -476,7 +584,7 @@
           <div class="input-group">
             <input type="password" id="input-openai-key" placeholder="sk-..." autocomplete="off" />
             <button id="btn-toggle-openai-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -493,7 +601,7 @@
           <div class="input-group">
             <input type="password" id="input-qwen-key" placeholder="sk-..." autocomplete="off" />
             <button id="btn-toggle-qwen-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -754,13 +862,13 @@
 
       <!-- Tab: Display -->
       <div class="settings-tab-content" id="tab-summary">
-        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <button class="settings-back-row" data-screen="settings-home"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-left" /></svg>Settings</button>
         <div class="settings-section">
           <span class="field-label">Model that writes the summary</span>
           <select id="select-summary-provider">
-            <option value="openai">⚡ OpenAI</option>
-            <option value="qwen">🌏 Qwen (DashScope)</option>
-            <option value="gemini">🔷 Google Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="qwen">Qwen (DashScope)</option>
+            <option value="gemini">Google Gemini</option>
           </select>
           <p class="hint">Reuses the translation engine's API key. Gemini has its own key below.</p>
         </div>
@@ -778,7 +886,7 @@
           <span class="field-label">Google Gemini API Key</span>
           <div class="input-group">
             <input type="password" id="input-gemini-key" placeholder="AIza..." autocomplete="off" />
-            <button id="btn-toggle-gemini-key" class="icon-btn" type="button" title="Show / hide">👁</button>
+            <button id="btn-toggle-gemini-key" class="icon-btn" type="button" title="Show / hide"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-eye" /></svg></button>
           </div>
           <p class="hint">Get a key at <a href="https://aistudio.google.com/apikey" id="link-gemini">aistudio.google.com</a></p>
         </div>
@@ -805,7 +913,7 @@
       </div>
 
       <div class="settings-tab-content" id="tab-display">
-        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <button class="settings-back-row" data-screen="settings-home"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-left" /></svg>Settings</button>
         <div class="settings-section">
           <div class="slider-field">
             <span class="field-label">Interface opacity</span>
@@ -859,20 +967,20 @@
 
       <!-- Tab: TTS -->
       <div class="settings-tab-content" id="tab-tts">
-        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <button class="settings-back-row" data-screen="settings-home"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-left" /></svg>Settings</button>
         <div class="settings-section">
           <span class="field-label">Provider</span>
           <select id="select-tts-provider">
             <optgroup label="Free">
-              <option value="edge">🎙️ Edge TTS — Free</option>
-              <option value="microsoft">🪟 Microsoft v2 — Free</option>
-              <option value="google-free">🌐 Google TTS — Free</option>
-              <option value="tiktok">🎵 TikTok TTS — Free</option>
-              <option value="local">🔊 Local (Offline) — Free</option>
+              <option value="edge">Edge TTS — Free</option>
+              <option value="microsoft">Microsoft v2 — Free</option>
+              <option value="google-free">Google TTS — Free</option>
+              <option value="tiktok">TikTok TTS — Free</option>
+              <option value="local">Local (Offline) — Free</option>
             </optgroup>
             <optgroup label="Premium">
-              <option value="google">🌐 Google Chirp 3 HD — Premium</option>
-              <option value="elevenlabs">✨ ElevenLabs — Premium</option>
+              <option value="google">Google Chirp 3 HD — Premium</option>
+              <option value="elevenlabs">ElevenLabs — Premium</option>
             </optgroup>
           </select>
           <p class="hint" id="tts-provider-hint">Free, natural voices — no API key needed</p>
@@ -928,7 +1036,7 @@
           <div class="input-group">
             <input type="password" id="input-google-free-key" placeholder="AIzaSy… (leave empty to use the built-in key)" autocomplete="off" />
             <button id="btn-toggle-google-free-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -1003,8 +1111,8 @@
             <span class="field-label">Model folder</span>
             <div class="input-group">
               <input type="text" id="input-local-models-dir" placeholder="Resolving…" readonly title="Full path where voice models are stored" />
-              <button id="btn-local-change-dir" class="icon-btn small" title="Change location" type="button">📁</button>
-              <button id="btn-local-reset-dir" class="icon-btn small" title="Reset to default app location" type="button">↺</button>
+              <button id="btn-local-change-dir" class="icon-btn small" title="Change location" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-folder" /></svg></button>
+              <button id="btn-local-reset-dir" class="icon-btn small" title="Reset to default app location" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-rotate-ccw" /></svg></button>
             </div>
             <p class="hint">Where downloaded voice models are stored. 100% offline once downloaded.</p>
           </div>
@@ -1016,7 +1124,7 @@
           <div class="input-group">
             <input type="password" id="input-google-tts-key" placeholder="AIzaSy..." autocomplete="off" />
             <button id="btn-toggle-google-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -1066,7 +1174,7 @@
           <div class="input-group">
             <input type="password" id="input-elevenlabs-key" placeholder="Enter key..." autocomplete="off" />
             <button id="btn-toggle-elevenlabs-key" class="icon-btn small" title="Show/Hide">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
               </svg>
             </button>
@@ -1086,7 +1194,7 @@
 
       <!-- Tab: About -->
       <div class="settings-tab-content" id="tab-about">
-        <button class="settings-back-row" data-screen="settings-home">‹ Settings</button>
+        <button class="settings-back-row" data-screen="settings-home"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-chevron-left" /></svg>Settings</button>
         <div class="settings-section about-info">
           <div class="about-app-header">
             <span class="about-app-name">My Translator</span>
@@ -1100,7 +1208,7 @@
           <div id="update-status" class="update-status">
             <span id="update-status-text">Click to check for updates</span>
             <button id="btn-check-update" class="check-update-btn" title="Check now">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <polyline points="23 4 23 10 17 10"/>
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
               </svg>
@@ -1108,7 +1216,7 @@
           </div>
           <div id="update-actions" style="margin-top:8px;display:none;">
             <button id="btn-do-update" class="primary-btn update-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="ic ic-sm" viewBox="0 0 24 24">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
@@ -1134,7 +1242,7 @@
       <!-- Save -->
       <div class="settings-actions">
         <button id="btn-save-settings" class="primary-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="ic ic-md" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12" />
           </svg>
           Save & Close
@@ -1147,7 +1255,7 @@
   <!-- ═══════════════════ SHORTCUT SHEET ═══════════════════ -->
   <div id="shortcut-sheet" class="modal-overlay" style="display:none">
     <div class="modal-card shortcut-card">
-      <h3 class="shortcut-title">⌨️ Keyboard shortcuts</h3>
+      <h3 class="shortcut-title">Keyboard shortcuts</h3>
       <table class="shortcut-table">
         <tr><td><kbd>⌘↩</kbd></td><td>Start / stop translating</td></tr>
         <tr><td><kbd>⌘1</kbd> / <kbd>⌘2</kbd> / <kbd>⌘3</kbd></td><td>Source: System / Mic / Both</td></tr>
@@ -1168,7 +1276,7 @@
   <div id="setup-modal" class="modal-overlay" style="display:none">
     <div class="modal-card">
       <div class="modal-header">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+        <svg class="ic ic-lg" viewBox="0 0 24 24">
           <path d="M12 2L2 7l10 5 10-5-10-5z" />
           <path d="M2 17l10 5 10-5" />
           <path d="M2 12l10 5 10-5" />
@@ -1190,19 +1298,19 @@
         <!-- Step indicators -->
         <div class="setup-steps">
           <div class="setup-step" id="step-check">
-            <span class="step-icon">⏳</span>
+            <span class="step-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-circle" /></svg></span>
             <span class="step-text">Checking Python</span>
           </div>
           <div class="setup-step" id="step-venv">
-            <span class="step-icon">⏳</span>
+            <span class="step-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-circle" /></svg></span>
             <span class="step-text">Creating environment</span>
           </div>
           <div class="setup-step" id="step-packages">
-            <span class="step-icon">⏳</span>
+            <span class="step-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-circle" /></svg></span>
             <span class="step-text">Installing packages</span>
           </div>
           <div class="setup-step" id="step-models">
-            <span class="step-icon">⏳</span>
+            <span class="step-icon"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-circle" /></svg></span>
             <span class="step-text">Downloading models (~5GB)</span>
           </div>
         </div>

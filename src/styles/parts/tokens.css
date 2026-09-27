@@ -66,6 +66,13 @@
   --border-light: rgba(255, 255, 255, 0.68);
   --border-focus: rgba(63, 91, 217, 0.48);
 
+  /* Hover ON a near-opaque surface. The white --bg-hover works over the
+     coloured ground, but on a white popover it moves the fill from 88% white
+     to 85% white — a change nothing can see. Anything floating above the page
+     (menus, popovers) needs this ink wash instead. */
+  --hover-on-solid: rgba(20, 26, 44, 0.06);
+  --active-on-solid: rgba(20, 26, 44, 0.10);
+
   /* An INK hairline, for the one place a white edge cannot work: form controls
      sitting on the near-opaque Settings and Library surfaces. A white border on
      a white card is an invisible border. */
@@ -112,6 +119,51 @@
   --glass-blur: blur(26px) saturate(185%);
   --glass-lip: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.28);
 
+  /* ── Composites hoisted out of the view sheets ─────────
+     These were raw colour values scattered across overlay/read/
+     meeting/settings, which broke the rule at the top of this file
+     and made a second theme impossible. Light values below are the
+     ones those sheets already used, so this hoist is a rename, not
+     a restyle.
+
+     --*-ink tokens are the exception to theming: they are text ON a
+     solid brand fill, so they must NOT follow the theme. A near-white
+     ink over the read accent's yellow is unreadable. */
+
+  /* The switch knob. Stays light in both themes — a knob reads as the
+     thing that moved, and on dark a dark knob disappears into its track. */
+  --knob: #FFFFFF;
+  --knob-shadow: 0 1px 3px rgba(20, 26, 44, 0.35);
+
+  /* Lit top edges, by strength. Three steps replace the five slightly
+     different white alphas the sheets were each inventing. */
+  --lip-soft: rgba(255, 255, 255, 0.42);
+  --lip: rgba(255, 255, 255, 0.80);
+  --lip-strong: rgba(255, 255, 255, 0.92);
+
+  /* An accent fill is a gradient, not a flat colour: a flat fill on a
+     glass surface reads as a sticker stuck to it. */
+  --accent-lift: #5A74E6;
+  --accent-fill: linear-gradient(180deg, var(--accent-lift), var(--accent));
+  --accent-shadow: 0 4px 14px -3px rgba(63, 91, 217, 0.55);
+  --border-on-accent: rgba(255, 255, 255, 0.34);
+  --accent-alt: #7C5CD6;
+
+  /* Read mode runs on its own amber, separate from the app accent, so a
+     spoken chunk cannot be confused with a selected control. */
+  --read-accent: #EAB308;
+  --read-accent-soft: rgba(234, 179, 8, 0.30);
+  --read-accent-ink: #141A2A;
+
+  --error-border: rgba(216, 57, 74, 0.34);
+
+  /* Surfaces built from more than one stop. */
+  --shell-sheen:
+    radial-gradient(90% 42% at 14% -10%, rgba(255, 255, 255, 0.40), transparent 62%),
+    linear-gradient(196deg, transparent 72%, rgba(255, 255, 255, 0.10));
+  --row-lift: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.44));
+  --btn-lift: linear-gradient(180deg, #FFFFFF, rgba(255, 255, 255, 0.82));
+
   /* ── Elevation ─────────────────────────────────────────── */
   --shadow-sm: 0 1px 3px rgba(16, 22, 40, 0.12);
   --shadow-md: 0 2px 10px rgba(16, 22, 40, 0.12);
@@ -126,6 +178,251 @@
   --radius-lg: 20px;
   --radius-pill: 999px;
 
-  --transition-fast: 160ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 140ms var(--ease-out);
+  --transition-normal: 220ms var(--ease-out);
+
+  /* ── Type ──────────────────────────────────────────────
+     Nine steps, and nothing between them. The ladder exists
+     because the stylesheet previously carried twenty sizes —
+     11px next to 11.5px next to 12px next to 12.5px — and
+     half-pixel neighbours are the kind of difference the eye
+     cannot name but still reads as sloppy.
+
+     Rungs are ~1px apart at the bottom (where dense chrome
+     lives and 1px matters) and widen at the top. `em` sizes
+     elsewhere are deliberately left alone: those scale with
+     whatever they sit in, which is a different job.
+
+     --fs-3xs is reserved for uppercase micro-labels with
+     tracking. Do not use it for sentence text. */
+  --fs-3xs: 9px;
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 20px;
+  --fs-3xl: 30px;
+
+  /* ── Space ─────────────────────────────────────────────
+     A 2px base, not 4px: this is dense desktop chrome where a
+     4px-only grid would force every tight control to round up
+     and cost real vertical room in a 46px bar.
+
+     Tokens are named for their pixel value on purpose. It makes
+     an off-grid value impossible to write by accident — there is
+     no --space-9 — and it keeps every call site checkable at a
+     glance without arithmetic. */
+  /* The hairline step. It is not rhythm — it is the seam between two
+     segmented buttons and the vertical padding of a micro-badge, both of
+     which answer a 1px border rather than the layout grid. Do not reach
+     for it to nudge something into place. */
+  --space-1: 1px;
+
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  /* ── Fonts ─────────────────────────────────────────────
+     System stack, not a webfont. A desktop app must not wait on
+     fonts.googleapis.com to paint its first frame, and must not
+     lose its typeface when offline — so this resolves to SF Pro
+     on macOS and Segoe UI Variable on Windows 11, each already
+     hinted for the OS it renders on.
+
+     One mono stack, because there were four and they disagreed. */
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', 'Cascadia Code',
+    'Segoe UI Mono', Menlo, Consolas, monospace;
+
+  /* ── Motion ────────────────────────────────────────────
+     Expo-out, not Material's ease-in-out: it leaves at speed and
+     settles, which is what makes a control feel answerable rather
+     than animated. --ease-spring overshoots ~5% and is for things
+     that appear (panels, popovers), never for colour.
+
+     Animate transform and opacity. Layout and colour transitions
+     are what make a WebView feel like a web page. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* Tells the WebView to render scrollbars, selection and any native
+     control in the matching scheme. Without it the scrollbar stays light
+     on a dark window, which is the single most obvious tell. */
+  color-scheme: light;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DARK THEME
+
+   Only tokens are redefined here — no view sheet has a dark rule,
+   which is the whole point of the file above.
+
+   Two inversions matter more than the colours, and both are places
+   where a mechanical lighten/darken gives the wrong answer:
+
+   1. WASHES FLIP MAGNITUDE, NOT JUST DIRECTION. On the light ground
+      a pane is lifted by white at 26-86%. Reusing those alphas here
+      would produce white boxes: on a dark ground the same separation
+      is bought with white at 4-16%. Lift is a ratio, not an amount.
+
+   2. THE HAIRLINE SWAPS SIDES. In light it is ink, because a white
+      border on a white card is invisible. Here the identical problem
+      runs the other way, so it becomes white — and the glass edges,
+      which were already white, have to come DOWN instead.
+
+   Not themed on purpose: --knob (a knob that goes dark disappears
+   into its track) and --read-accent-ink (ink on a solid amber fill —
+   it follows the fill, not the window).
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* ── The ground ──────────────────────────────────────
+       Same two lights as light mode, slightly stronger: on a dark
+       ground a faint wash reads as noise, not as colour. */
+    --bg-primary:
+      radial-gradient(70% 48% at 4% -14%, rgba(92, 126, 255, 0.12), transparent 62%),
+      radial-gradient(64% 44% at 100% -6%, rgba(58, 208, 192, 0.07), transparent 60%),
+      linear-gradient(180deg, #171C2A, #0E121C);
+
+    --bg-secondary: rgba(26, 31, 45, 0.93);
+    --bg-glass: rgba(255, 255, 255, 0.06);
+    --bg-input: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.09);
+    --bg-active: rgba(255, 255, 255, 0.13);
+
+    /* ── Washes ──────────────────────────────────────────
+       See inversion (1): the light sheet's 0.26-0.86 becomes this. */
+    --wash-weak: rgba(255, 255, 255, 0.04);
+    --wash: rgba(255, 255, 255, 0.07);
+    --wash-strong: rgba(255, 255, 255, 0.11);
+    --wash-heavy: rgba(255, 255, 255, 0.16);
+
+    --scrim: rgba(4, 7, 13, 0.66);
+
+    /* ── Lines ───────────────────────────────────────────
+       See inversion (2): glass edges come down, the hairline goes white. */
+    --border-subtle: rgba(255, 255, 255, 0.09);
+    --border-light: rgba(255, 255, 255, 0.16);
+    --border-focus: rgba(142, 164, 255, 0.70);
+
+    --hairline: rgba(255, 255, 255, 0.14);
+    --hairline-strong: rgba(255, 255, 255, 0.24);
+
+    /* A recess is still a recess: darker than the surface it sits in,
+       with a light rim so its edge is findable. */
+    /* Inverted: on a dark popover the wash that separates a row is light. */
+    --hover-on-solid: rgba(255, 255, 255, 0.07);
+    --active-on-solid: rgba(255, 255, 255, 0.12);
+
+    --control-off: rgba(0, 0, 0, 0.45);
+    --control-off-inset: inset 0 0 0 1px rgba(255, 255, 255, 0.10), inset 0 2px 4px rgba(0, 0, 0, 0.50);
+
+    /* ── Text ────────────────────────────────────────────
+       Off-white, not #FFF: pure white on a near-black ground haloes
+       on subpixel-antialiased text and is tiring to read for long. */
+    --text-primary: #EDF0F7;
+    --text-secondary: #A8B1C7;
+    --text-muted: #7E879D;
+    --text-provisional: #626B80;
+
+    /* ── Accent ──────────────────────────────────────────
+       Lifted just enough to read against the dark ground, but kept
+       dark enough that white --on-accent still clears contrast on a
+       filled button. Those two pull in opposite directions; this is
+       the middle. */
+    --accent: #5570E8;
+    --accent-hover: #7D93F4;
+    --accent-glow: rgba(120, 146, 255, 0.22);
+    --accent-lift: #6E86F0;
+    --accent-shadow: 0 4px 16px -3px rgba(63, 91, 217, 0.70);
+    --accent-alt: #9A7BE8;
+
+    /* ── Semantic state ──────────────────────────────────
+       The light theme's mid-tone inks are too dark to read here, so
+       each is raised; the soft fills are raised too, because a 13%
+       tint that worked on white vanishes on near-black. */
+    --success: #3ED68C;
+    --warning: #E5A93A;
+    --error: #FF6E7D;
+    --success-soft: rgba(62, 214, 140, 0.17);
+    --warning-soft: rgba(229, 169, 58, 0.17);
+    --error-soft: rgba(255, 110, 125, 0.17);
+    --error-border: rgba(255, 110, 125, 0.38);
+
+    /* ── Glass ───────────────────────────────────────────
+       saturate() comes down: 185% was tuned against a bright ground
+       and on a dark one it pushes whatever is behind into neon. */
+    --glass-tint: linear-gradient(170deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.045));
+    --glass-blur: blur(26px) saturate(135%);
+    --glass-lip: inset 0 1px 0 rgba(255, 255, 255, 0.13), inset 0 -1px 0 rgba(0, 0, 0, 0.32);
+
+    --lip-soft: rgba(255, 255, 255, 0.07);
+    --lip: rgba(255, 255, 255, 0.11);
+    --lip-strong: rgba(255, 255, 255, 0.15);
+    --border-on-accent: rgba(255, 255, 255, 0.20);
+
+    /* ── Elevation ───────────────────────────────────────
+       Shadow barely separates two dark surfaces, so it goes to near
+       black for depth and the lit border above does the edge work. */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.50);
+    --shadow-md: 0 3px 12px rgba(0, 0, 0, 0.52);
+    --shadow-lg: 0 14px 40px -12px rgba(0, 0, 0, 0.70);
+    --shadow-xl: 0 24px 64px -18px rgba(0, 0, 0, 0.78);
+
+    /* ── Composites ──────────────────────────────────────
+       Same shapes as light, rebuilt at dark-appropriate alphas. */
+    --shell-sheen:
+      radial-gradient(90% 42% at 14% -10%, rgba(255, 255, 255, 0.055), transparent 62%),
+      linear-gradient(196deg, transparent 72%, rgba(255, 255, 255, 0.025));
+    --row-lift: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.07));
+    --btn-lift: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+    --knob-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+
+    --read-accent: #F5C133;
+    --read-accent-soft: rgba(245, 193, 51, 0.26);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NATIVE BACKDROP
+
+   Set by platform.js only after Rust confirms the OS actually
+   granted the window a material (Mica / NSVisualEffect). Its
+   ABSENCE is the safe state and the default, because the window
+   is `transparent: true`: thin the ground with no material behind
+   it and the transcript ends up on raw wallpaper.
+
+   Only --bg-primary changes. The material supplies the depth and
+   the ambient colour that the gradient was faking, so what is left
+   here is a tint strong enough to keep continuous text readable —
+   this is still not a see-through overlay.
+   ═══════════════════════════════════════════════════════════ */
+:root[data-native-material] {
+  --bg-primary:
+    radial-gradient(70% 48% at 4% -14%, rgba(92, 126, 255, 0.05), transparent 62%),
+    radial-gradient(64% 44% at 100% -6%, rgba(58, 208, 192, 0.04), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(247, 249, 253, 0.72));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-native-material] {
+    --bg-primary:
+      radial-gradient(70% 48% at 4% -14%, rgba(92, 126, 255, 0.10), transparent 62%),
+      radial-gradient(64% 44% at 100% -6%, rgba(58, 208, 192, 0.06), transparent 60%),
+      linear-gradient(180deg, rgba(23, 28, 42, 0.74), rgba(14, 18, 28, 0.80));
+  }
 }

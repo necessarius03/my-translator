@@ -132,7 +132,7 @@ export class TtsController {
             const sidInput = document.getElementById('input-tiktok-session');
             if (m && m[1] && sidInput && sidInput.value !== m[1]) {
                 sidInput.value = m[1];
-                showToast('sessionid extracted from cURL ✓', 'success');
+                showToast('sessionid extracted from cURL', 'success');
             }
         });
 
@@ -201,11 +201,11 @@ export class TtsController {
                 google: 'Google Chirp 3 HD',
                 elevenlabs: 'ElevenLabs',
             }[provider] || provider;
-            showToast(`TTS narration ON 🔊 (${label})`, 'success');
+            showToast(`TTS narration on — ${label}`, 'success');
         } else {
             tts.disconnect();
             audioPlayer.stop();
-            showToast('TTS narration OFF 🔇', 'success');
+            showToast('TTS narration off', 'success');
         }
     }
 

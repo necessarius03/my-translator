@@ -1,13 +1,14 @@
 /**
- * Platform detection + the one UI consequence of it (Local MLX labelling).
- * Returns { os, isAppleSilicon }; the app keeps it on `app.platform`.
+ * Platform detection + the UI consequences of it: Local MLX labelling, and
+ * whether the OS granted this window a native backdrop.
+ * Returns { os, isAppleSilicon, nativeMaterial }; kept on `app.platform`.
  */
 import { settingsManager } from '../settings.js';
 
 const { invoke } = window.__TAURI__.core;
 
 export async function detectPlatform() {
-    const platform = { os: 'macos', isAppleSilicon: false };
+    const platform = { os: 'macos', isAppleSilicon: false, nativeMaterial: false };
     try {
         // Apple Silicon detection must be Rosetta-proof: the x64 build on an
         // ARM Mac reports arch "x86_64" but is_arm_hardware asks the real CPU.
@@ -18,6 +19,16 @@ export async function detectPlatform() {
         platform.os = info.os; // 'macos' | 'windows' | 'linux'
         platform.isAppleSilicon = info.is_arm_hardware === true
             || (info.os === 'macos' && info.arch === 'aarch64');
+
+        // Only Rust knows whether the material actually applied — Tauri's own
+        // set_effects swallows that error, so lib.rs calls window-vibrancy
+        // directly for the real Result. The attribute lets the stylesheet thin
+        // its ground; its ABSENCE is the safe state, so nothing is ever removed
+        // here on failure.
+        platform.nativeMaterial = info.native_material === true;
+        if (platform.nativeMaterial) {
+            document.documentElement.dataset.nativeMaterial = '';
+        }
     } catch {
         // Fallback: check via navigator
         platform.os = navigator.userAgent.includes('Mac OS X') ? 'macos'

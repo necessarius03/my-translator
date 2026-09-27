@@ -480,13 +480,13 @@ export class SonioxClient {
 
         let userMessage = message;
         if (code === 401) {
-            userMessage = '❌ Invalid API key. Please check your key in Settings.';
+            userMessage = 'Invalid API key. Please check your key in Settings.';
         } else if (code === 429) {
-            userMessage = '⏳ Rate limit exceeded. Please wait a moment.';
+            userMessage = 'Rate limit exceeded. Please wait a moment.';
         } else if (code === 402) {
-            userMessage = '💳 Insufficient credits. Check your Soniox account.';
+            userMessage = 'Insufficient credits. Check your Soniox account.';
         } else if (code === 400) {
-            userMessage = `⚙️ Config error: ${message}`;
+            userMessage = `Config error: ${message}`;
         }
 
         this._setStatus('error');

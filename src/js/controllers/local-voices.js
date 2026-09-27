@@ -90,12 +90,12 @@ export class LocalVoiceManager {
                     `<label style="flex:1;display:flex;align-items:center;gap:6px;cursor:pointer;">` +
                     `<input type="radio" name="local-voice" value="${v.id}" ${checked} />` +
                     `<span>${esc(v.display)}</span></label>` +
-                    `<button type="button" class="icon-btn small btn-local-delete" data-id="${v.id}" title="Delete">🗑️</button>`;
+                    `<button type="button" class="icon-btn small btn-local-delete" data-id="${v.id}" title="Delete"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-trash" /></svg></button>`;
             } else {
                 row.innerHTML =
                     `<span style="flex:1;color:var(--text-muted,#888);">${esc(v.display)} · ${sizeMb} MB</span>` +
                     `<span class="local-progress" data-id="${v.id}" style="min-width:64px;text-align:right;"></span>` +
-                    `<button type="button" class="icon-btn small btn-local-download" data-id="${v.id}" title="Download">⬇️</button>`;
+                    `<button type="button" class="icon-btn small btn-local-download" data-id="${v.id}" title="Download"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-download" /></svg></button>`;
             }
             container.appendChild(row);
         };
@@ -141,7 +141,7 @@ export class LocalVoiceManager {
         };
         try {
             await invoke('local_tts_download_model', { id, onProgress });
-            showToast('Voice downloaded ✓', 'success');
+            showToast('Voice downloaded', 'success');
             await this.refresh();
             this.fill(document.getElementById('select-local-lang')?.value || 'vi');
         } catch (err) {

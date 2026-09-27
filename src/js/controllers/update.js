@@ -13,14 +13,15 @@ export class UpdateController {
         };
         updater.onError = (err) => {
             const statusText = document.getElementById('update-status-text');
-            if (statusText) statusText.textContent = `⚠️ Check failed: ${err.message || err}`;
+            if (statusText) statusText.textContent = `Check failed: ${err.message || err}`;
+            document.getElementById('update-status')?.classList.add('is-error');
         };
         updater.onCheckComplete = (hasUpdate) => {
             const checkBtn = document.getElementById('btn-check-update');
             if (checkBtn) checkBtn.classList.remove('spinning');
             if (!hasUpdate && !this.pendingVersion) {
                 const statusText = document.getElementById('update-status-text');
-                if (statusText) statusText.textContent = '✅ App is up to date';
+                if (statusText) statusText.textContent = 'App is up to date';
             }
         };
         // Delay check slightly so app finishes loading first
@@ -28,6 +29,7 @@ export class UpdateController {
             const statusText = document.getElementById('update-status-text');
             const checkBtn = document.getElementById('btn-check-update');
             if (statusText) statusText.textContent = 'Checking for updates...';
+            document.getElementById('update-status')?.classList.remove('is-error');
             if (checkBtn) checkBtn.classList.add('spinning');
             updater.checkForUpdates();
         }, 3000);
@@ -37,6 +39,7 @@ export class UpdateController {
         const statusText = document.getElementById('update-status-text');
         const checkBtn = document.getElementById('btn-check-update');
         if (statusText) statusText.textContent = 'Checking for updates...';
+        document.getElementById('update-status')?.classList.remove('is-error');
         if (checkBtn) checkBtn.classList.add('spinning');
         updater.checkForUpdates();
     }
@@ -123,16 +126,17 @@ export class UpdateController {
                 } catch (restartErr) {
                     // Restart failed (e.g. process plugin not available) but update IS installed
                     console.warn('[Update] Restart failed, update is installed:', restartErr);
-                    if (btnText) btnText.textContent = '✅ Updated! Restart app';
+                    if (btnText) btnText.textContent = 'Updated — restart the app';
                     const statusText = document.getElementById('update-status-text');
-                    if (statusText) statusText.textContent = '✅ Update installed — close and reopen the app';
+                    if (statusText) statusText.textContent = 'Update installed — close and reopen the app';
                     if (btn) btn.disabled = true;
                 }
             } catch (err) {
                 const errMsg = err?.message || String(err);
                 if (btnText) btnText.textContent = 'Failed — try again';
                 const statusText = document.getElementById('update-status-text');
-                if (statusText) statusText.textContent = `⚠️ Install error: ${errMsg}`;
+                if (statusText) statusText.textContent = `Install error: ${errMsg}`;
+                document.getElementById('update-status')?.classList.add('is-error');
                 if (btn) btn.disabled = false;
                 console.error('[Update]', err);
             }

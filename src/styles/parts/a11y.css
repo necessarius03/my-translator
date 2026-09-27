@@ -1,0 +1,53 @@
+/* ═══════════════════════════════════════════════════════════
+   Focus and motion.
+
+   Loaded LAST on purpose. Several view sheets clear the native
+   ring with `outline: none` and then style focus themselves —
+   which is right for a text field, where a border colour reads
+   better than a ring around something you are typing in. But a
+   few controls cleared the ring and replaced it with nothing:
+   the colour swatches and the range sliders had no focus state
+   at all, so keyboard users could not see where they were.
+
+   Per the cascade note in main.css, a rule that has to win
+   belongs in the later file rather than behind a bumped selector.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Text fields are deliberately excluded: they already answer focus with
+   --border-focus plus an accent glow, and a ring on top of that is noise. */
+button:focus-visible,
+select:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="range"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* On the accent-filled primary action the accent ring would sit on its own
+   colour and vanish, so that one ring is drawn in the ink of the surface
+   underneath instead. */
+.primary-action-btn:focus-visible {
+  outline-color: var(--text-primary);
+}
+
+/* ─── Motion ───────────────────────────────────────────────
+   The two existing narrow opt-outs (the meeting LED, the subtitle
+   cue) stay where they are; this is the blanket. Durations go to
+   ~0 rather than `none` so any transitionend keeps firing — nothing
+   listens for one today, and this way adding one later cannot
+   silently hang on a reduced-motion machine. */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

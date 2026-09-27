@@ -186,10 +186,10 @@ export class EngineUiController {
             hintSoniox.classList.toggle('hint-warning', warn);
             if (localUnsupported) {
                 hintSoniox.textContent = this.app.platform.os === 'macos'
-                    ? '⚠️ Local MLX needs an Apple Silicon chip — this machine cannot run it, pick another engine.'
-                    : '⚠️ Local MLX runs only on macOS with Apple Silicon — pick another engine on this machine.';
+                    ? 'Local MLX needs an Apple Silicon chip — this machine cannot run it, pick another engine.'
+                    : 'Local MLX runs only on macOS with Apple Silicon — pick another engine on this machine.';
             } else if (missingKey) {
-                hintSoniox.textContent = `⚠️ ${missingKey} needs an API key — enter one below before starting.`;
+                hintSoniox.textContent = `${missingKey} needs an API key — enter one below before starting.`;
             }
         }
         if (hintLocal) hintLocal.style.display = 'none';

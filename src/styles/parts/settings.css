@@ -29,12 +29,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: var(--space-8) var(--space-12);
   height: var(--control-bar-height);
 }
 
 .settings-header h2 {
-  font-size: 14px;
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.01em;
@@ -43,7 +43,7 @@
 .settings-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: var(--space-16);
 }
 
 .settings-body::-webkit-scrollbar {
@@ -64,10 +64,10 @@
 .settings-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-12);
   width: 100%;
-  padding: 14px 14px;
-  margin-bottom: 10px;
+  padding: var(--space-16) var(--space-16);
+  margin-bottom: var(--space-10);
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
@@ -92,25 +92,32 @@
   border-color: var(--border-subtle);
 }
 
-.settings-card-icon {
-  font-size: 20px;
-}
-
 .settings-card-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
 }
 
 .settings-card-title {
-  font-size: 13px;
+  font-size: var(--fs-base);
   font-weight: 600;
 }
 
+/* The key-missing warning inside a card subtitle. Colour and icon together,
+   because the subtitle is small enough that colour alone gets missed. */
+.sub-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--warning);
+  font-weight: 500;
+  vertical-align: -2px;
+}
+
 .settings-card-sub {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -118,18 +125,21 @@
 }
 
 .settings-card-chevron {
+  display: flex;
+  align-items: center;
   color: var(--text-muted);
-  font-size: 18px;
 }
 
 .settings-back-row {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
   width: 100%;
-  padding: 4px 0 10px;
+  padding: var(--space-4) 0 var(--space-10);
   background: none;
   border: none;
   color: var(--accent);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -152,7 +162,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-6);
 }
 
 .btn-icon-sm {
@@ -162,7 +172,7 @@
   border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: var(--fs-lg);
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -176,8 +186,8 @@
 
 .term-row {
   display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
   align-items: center;
 }
 .term-row input {
@@ -191,7 +201,7 @@
   border-radius: 4px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--fs-md);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
@@ -206,8 +216,8 @@
 /* General context rows — key/value pairs */
 .general-row {
   display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
   align-items: center;
 }
 .general-row input {
@@ -227,7 +237,7 @@
   border-radius: 4px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--fs-md);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
@@ -241,13 +251,13 @@
 
 /* Context subsections */
 .context-subsection {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-10);
 }
 .context-subsection textarea {
   width: 100%;
   resize: vertical;
   min-height: 36px;
-  margin-top: 4px;
+  margin-top: var(--space-4);
 }
 
 /* Dim hint text */
@@ -258,47 +268,47 @@
 
 /* ─── Settings Sections ────────────────────────────────── */
 .settings-section {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: var(--space-20);
+  padding-bottom: var(--space-16);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .settings-section:last-of-type {
   border-bottom: none;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-8);
 }
 
 .section-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: var(--space-6);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-10);
 }
 
 .optional-badge {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 400;
   color: var(--text-muted);
   text-transform: none;
   letter-spacing: 0;
   background: var(--wash-weak);
-  padding: 1px 6px;
+  padding: var(--space-1) var(--space-6);
   border-radius: 4px;
 }
 
 .required-badge {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   color: var(--warning);
   text-transform: none;
   letter-spacing: 0;
   background: var(--warning);
-  padding: 1px 6px;
+  padding: var(--space-1) var(--space-6);
   border-radius: 4px;
 }
 
@@ -314,7 +324,7 @@
 /* ─── Form Elements ────────────────────────────────────── */
 .input-group {
   display: flex;
-  gap: 4px;
+  gap: var(--space-4);
 }
 
 .input-group input {
@@ -324,13 +334,13 @@
 input[type="text"],
 input[type="password"] {
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-8) var(--space-12);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--fs-base);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -347,13 +357,13 @@ input::placeholder {
 
 select {
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-8) var(--space-12);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   background: var(--bg-input);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--fs-base);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -361,7 +371,7 @@ select {
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  padding-right: 28px;
+  padding-right: var(--space-24);
   transition: border-color var(--transition-fast);
 }
 
@@ -373,17 +383,17 @@ select:focus {
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: var(--space-10);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-4);
 }
 
 .field-label {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: var(--text-muted);
 }
@@ -391,10 +401,10 @@ select:focus {
 /* Radio Group */
 .radio-group {
   display: flex;
-  gap: 4px;
+  gap: var(--space-4);
   background: var(--wash-weak);
   border-radius: var(--radius-sm);
-  padding: 3px;
+  padding: var(--space-4);
 }
 
 .radio-option {
@@ -409,9 +419,9 @@ select:focus {
 
 .radio-label {
   display: block;
-  padding: 6px 8px;
+  padding: var(--space-6) var(--space-8);
   border-radius: 4px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-secondary);
   transition: all var(--transition-fast);
@@ -430,8 +440,8 @@ select:focus {
 .slider-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--space-10);
+  margin-bottom: var(--space-10);
 }
 
 .slider-field .field-label {
@@ -464,7 +474,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .range-value {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text-secondary);
   min-width: 32px;
@@ -476,9 +486,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .checkbox-option {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   cursor: pointer;
-  padding: 4px 0;
+  padding: var(--space-4) 0;
 }
 
 .checkbox-option input[type="checkbox"] {
@@ -512,15 +522,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .checkbox-label {
-  font-size: 13px;
+  font-size: var(--fs-base);
   color: var(--text-secondary);
 }
 
 /* Hint text */
 .hint {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
-  margin-top: 6px;
+  margin-top: var(--space-6);
 }
 
 .hint a {
@@ -534,22 +544,22 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* ─── Settings Actions ─────────────────────────────────── */
 .settings-actions {
-  padding-top: 8px;
+  padding-top: var(--space-8);
 }
 
 .primary-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-8);
   width: 100%;
-  padding: 10px 16px;
+  padding: var(--space-10) var(--space-16);
   border: none;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--on-accent);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--fs-base);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -570,9 +580,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%) translateY(50px);
-  padding: 8px 16px;
+  /* Row, so the type icon sits beside the message instead of being a character
+     inside it. width:max-content keeps the pill hugging short messages while
+     max-width below still wraps long provider errors. */
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: max-content;
+  padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   pointer-events: none;
   opacity: 0;
@@ -601,6 +618,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border: 1px solid var(--error-soft);
 }
 
+/* `info` is passed by six call sites but never had a rule, so those toasts
+   rendered as unbacked text over the blur — barely readable on either theme. */
+.toast.info {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-md);
+}
+
 /* ─── Animations ───────────────────────────────────────── */
 @keyframes viewFadeIn {
   from {
@@ -626,7 +652,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: modalFadeIn 0.3s ease;
+  animation: modalFadeIn 0.3s var(--ease-spring);
 }
 
 .modal-card {
@@ -642,8 +668,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .modal-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 24px 0;
+  gap: var(--space-12);
+  padding: var(--space-20) var(--space-24) 0;
 }
 
 .modal-header h3 {
@@ -653,18 +679,18 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .modal-body {
-  padding: 16px 24px;
+  padding: var(--space-16) var(--space-24);
 }
 
 .modal-desc {
   color: var(--text-secondary);
   font-size: 0.85em;
   line-height: 1.5;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-20);
 }
 
 .modal-footer {
-  padding: 12px 24px 20px;
+  padding: var(--space-12) var(--space-24) var(--space-20);
   display: flex;
   justify-content: flex-end;
 }
@@ -674,7 +700,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--text-secondary);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
-  padding: 8px 20px;
+  padding: var(--space-8) var(--space-20);
   font-size: 0.85em;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -689,8 +715,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .progress-container {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--space-12);
+  margin-bottom: var(--space-20);
 }
 
 .progress-bar {
@@ -705,7 +731,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--accent), #7C5CD6);
+  background: linear-gradient(90deg, var(--accent), var(--accent-alt));
   border-radius: 3px;
   transition: width 0.5s ease;
   position: relative;
@@ -734,15 +760,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .setup-steps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
 }
 
 .setup-step {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  gap: var(--space-10);
+  padding: var(--space-6) var(--space-10);
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
 }
@@ -756,9 +782,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .step-icon {
-  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
-  text-align: center;
+  color: var(--text-muted);
+}
+
+.setup-step.active .step-icon {
+  color: var(--accent);
+}
+
+.setup-step.done .step-icon {
+  color: var(--success);
 }
 
 .step-text {
@@ -773,7 +809,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Status text */
 .setup-status {
-  padding: 8px 12px;
+  padding: var(--space-8) var(--space-12);
   background: var(--bg-input);
   border-radius: var(--radius-sm);
   min-height: 36px;
@@ -784,7 +820,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 #setup-status-text {
   color: var(--text-muted);
   font-size: 0.8em;
-  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-family: var(--font-mono);
   word-break: break-all;
 }
 
@@ -824,35 +860,35 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .about-app-header {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--space-8);
+  margin-bottom: var(--space-4);
 }
 
 .about-app-name {
-  font-size: 16px;
+  font-size: var(--fs-lg);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .about-app-version {
-  font-size: 13px;
+  font-size: var(--fs-base);
   color: var(--accent);
   font-weight: 500;
   background: var(--accent-glow);
-  padding: 1px 8px;
+  padding: var(--space-1) var(--space-8);
   border-radius: 10px;
 }
 
 .about-links {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-6);
 }
 
 .about-links a {
   color: var(--accent);
   text-decoration: none;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   transition: color var(--transition-fast);
 }
 
@@ -865,11 +901,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .update-status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
   background: var(--bg-input);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
 }
 
@@ -879,7 +915,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  padding: 4px 6px;
+  padding: var(--space-4) var(--space-6);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -900,6 +936,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
   to { transform: rotate(360deg); }
 }
 
+/* Failure state for both persistent status rows. The sentence says what
+   happened; this makes it findable without reading, now that the leading
+   emoji is gone. */
+.update-status.is-error,
+.setup-status.is-error {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
 .update-status.has-update {
   background: var(--success-soft);
   border: 1px solid var(--success-soft);
@@ -909,16 +954,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .update-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 6px 14px;
+  gap: var(--space-6);
+  font-size: var(--fs-sm);
+  padding: var(--space-6) var(--space-16);
 }
 
 .update-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
 }
 
 /* ─── Update message (main screen) ────────────────────── */
@@ -927,16 +972,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
   bottom: 48px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   background: var(--bg-input);
-  padding: 4px 12px;
+  padding: var(--space-4) var(--space-12);
   border-radius: 12px;
   cursor: pointer;
   transition: all var(--transition-fast);
   z-index: 50;
   opacity: 0;
-  animation: fadeInUp 0.3s ease forwards;
+  animation: fadeInUp 0.3s var(--ease-spring) forwards;
 }
 
 .update-hint:hover {

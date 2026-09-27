@@ -4,8 +4,14 @@
  */
 import { settingsManager } from '../settings.js';
 import { showToast } from '../util/toast.js';
-import { escAttr } from '../util/html.js';
+import { esc, escAttr } from '../util/html.js';
 import { refreshKeyStatus, testConnection } from '../settings/key-validation.js';
+
+/** The "key missing" fragment for a home-card subtitle. Static markup, so it
+ *  never carries anything that needs escaping. */
+const WARN_NO_KEY =
+    '<span class="sub-warn"><svg class="ic ic-sm" viewBox="0 0 24 24">'
+    + '<use href="#i-warn" /></svg>no API key yet</span>';
 
 export class SettingsFormController {
     constructor(app) {
@@ -132,9 +138,9 @@ export class SettingsFormController {
         const hasKey = mode === 'local' || !!(s[keyField[mode]] || '').trim();
         const subT = document.getElementById('card-translation-sub');
         if (subT) {
-            subT.textContent =
-                `${engineNames[mode] || mode} · ${s.source_language || 'auto'} → ${s.target_language || 'vi'}` +
-                (hasKey ? '' : ' · ⚠️ no API key yet');
+            subT.innerHTML =
+                `${esc(engineNames[mode] || mode)} · ${esc(s.source_language || 'auto')} → ${esc(s.target_language || 'vi')}` +
+                (hasKey ? '' : ' · ' + WARN_NO_KEY);
         }
 
         // TTS card: cloud-realtime engines run text-only — reflect on the card, never hide.
@@ -167,9 +173,9 @@ export class SettingsFormController {
         if (subSum) {
             const hasSumKey = !!(s[sumKeyField[sumProv]] || '').trim();
             const model = (s.summary_model || '').trim() || sumDefaults[sumProv];
-            subSum.textContent =
-                `${sumNames[sumProv] || sumProv} · ${model}` +
-                (hasSumKey ? '' : ' · ⚠️ no API key yet');
+            subSum.innerHTML =
+                `${esc(sumNames[sumProv] || sumProv)} · ${esc(model)}` +
+                (hasSumKey ? '' : ' · ' + WARN_NO_KEY);
         }
     }
 

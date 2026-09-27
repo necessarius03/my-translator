@@ -1,0 +1,72 @@
+/* ═══════════════════════════════════════════════════════════
+   Icons — one set, one optical weight.
+
+   Every icon is a Lucide glyph on a 24px grid (ISC licence,
+   paths inlined as a <symbol> sprite in index.html — no
+   library, no network). Colour comes from `currentColor`, so
+   an icon follows the theme the way text does. Emoji could
+   not: they render from the OS colour font, ignore colour,
+   and stay fully saturated on a dark ground.
+
+   THE SIZE RULE. A stroke drawn on a 24 grid does not keep its
+   weight when the icon is rendered smaller — what reaches the
+   screen is `stroke-width x (rendered size / 24)`. The sheet
+   used to carry six sizes against four stroke widths, which put
+   1.08px strokes next to 2.0px ones inside the same toolbar.
+   So stroke-width is derived per size to hold one weight:
+
+       stroke-width = 1.5 x (24 / rendered size)
+
+   Three sizes, and nothing between them. Adding a fourth means
+   computing its stroke-width by that formula, not guessing.
+   ═══════════════════════════════════════════════════════════ */
+
+.ic {
+  flex: none;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Dense chrome: toolbar, menu rows, inline buttons. */
+.ic-sm {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.57;
+}
+
+/* Primary actions and section headers. */
+.ic-md {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+/* Empty states and the engine cards — the only places an icon leads. */
+.ic-lg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.29;
+}
+
+/* Transport controls (play / pause / stop) and the overflow dots stay filled.
+   That is a deliberate exception, not a leftover: a hollow play triangle reads
+   as weaker than the button it sits in, and every media UI fills these. */
+.ic-solid {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* The one spinner in the app — the MLX setup step that is currently running. */
+.ic-spin {
+  animation: icSpin 900ms linear infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes icSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

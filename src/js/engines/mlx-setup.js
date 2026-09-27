@@ -10,18 +10,32 @@ export async function runMlxSetup() {
     const progressFill = document.getElementById('setup-progress-fill');
     const progressPct = document.getElementById('setup-progress-pct');
     const statusText = document.getElementById('setup-status-text');
+    // The row, not the sentence, carries the failure state — see .setup-status.is-error.
+    const setupStatus = document.querySelector('.setup-status');
     const cancelBtn = document.getElementById('btn-cancel-setup');
 
     // Step mapping: step name → total progress weight
     const stepWeights = { check: 5, venv: 10, packages: 35, models: 50 };
     let totalProgress = 0;
 
-    const updateStep = (stepName, icon, isActive) => {
+    // Step state is a NAME, not a glyph. It used to be the emoji itself, with
+    // `icon === '✅'` standing in for "done" — which meant the visual and the
+    // state were the same string and neither could change without the other.
+    const STEP_ICON = {
+        pending: 'i-circle',
+        busy: 'i-loader',
+        done: 'i-check-circle',
+        error: 'i-x-circle',
+    };
+
+    const updateStep = (stepName, state, isActive) => {
         const stepEl = document.getElementById(`step-${stepName}`);
         if (!stepEl) return;
-        stepEl.querySelector('.step-icon').textContent = icon;
+        const spin = state === 'busy' ? ' ic-spin' : '';
+        stepEl.querySelector('.step-icon').innerHTML =
+            `<svg class="ic ic-sm${spin}" viewBox="0 0 24 24"><use href="#${STEP_ICON[state] || STEP_ICON.pending}" /></svg>`;
         stepEl.classList.toggle('active', isActive);
-        stepEl.classList.toggle('done', icon === '✅');
+        stepEl.classList.toggle('done', state === 'done');
     };
 
     const updateProgress = (pct) => {
@@ -61,12 +75,12 @@ export async function runMlxSetup() {
                         const steps = ['check', 'venv', 'packages', 'models'];
                         const currentIdx = steps.indexOf(data.step);
                         steps.forEach((s, i) => {
-                            if (i < currentIdx) updateStep(s, '✅', false);
-                            else if (i === currentIdx) updateStep(s, '🔄', true);
+                            if (i < currentIdx) updateStep(s, 'done', false);
+                            else if (i === currentIdx) updateStep(s, 'busy', true);
                         });
 
                         if (data.done) {
-                            updateStep(data.step, '✅', false);
+                            updateStep(data.step, 'done', false);
                         }
 
                         // Calculate overall progress
@@ -83,8 +97,9 @@ export async function runMlxSetup() {
 
                 case 'complete':
                     updateProgress(100);
-                    statusText.textContent = '✅ ' + (data.message || 'Setup complete!');
-                    ['check', 'venv', 'packages', 'models'].forEach(s => updateStep(s, '✅', false));
+                    statusText.textContent = data.message || 'Setup complete!';
+                    setupStatus?.classList.remove('is-error');
+                    ['check', 'venv', 'packages', 'models'].forEach(s => updateStep(s, 'done', false));
 
                     // Close modal after brief delay
                     setTimeout(() => {
@@ -94,7 +109,8 @@ export async function runMlxSetup() {
                     break;
 
                 case 'error':
-                    statusText.textContent = '❌ ' + (data.message || 'Setup failed');
+                    statusText.textContent = data.message || 'Setup failed';
+                    setupStatus?.classList.add('is-error');
                     cancelBtn.textContent = 'Close';
                     cancelBtn.removeEventListener('click', onCancel);
                     cancelBtn.addEventListener('click', () => {
@@ -111,7 +127,8 @@ export async function runMlxSetup() {
 
         invoke('run_mlx_setup', { channel })
             .catch(err => {
-                statusText.textContent = '❌ ' + err;
+                statusText.textContent = String(err);
+                setupStatus?.classList.add('is-error');
                 modal.style.display = 'none';
                 reject(err);
             });

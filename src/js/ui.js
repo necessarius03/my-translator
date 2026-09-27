@@ -263,7 +263,7 @@ export class TranscriptUI {
           <line x1="12" y1="19" x2="12" y2="23"/>
           <line x1="8" y1="23" x2="16" y2="23"/>
         </svg>
-        <p>Press ▶ to start translating</p>
+        <p>Press Start to begin translating</p>
         <p class="shortcut-hint">⌘ Enter</p>
       </div>
     `;
@@ -681,6 +681,12 @@ export class TranscriptUI {
      * Get language flag emoji + code
      */
     _langEmoji(langCode) {
+        // The one place emoji stay, on purpose. Flags are the exception the icon
+        // pass deliberately left alone: there is no usable monochrome flag — strip
+        // the colour and Vietnam and China become near-identical rectangles — and in
+        // a list this long the colour is what lets the eye find a language. Every
+        // other emoji in the chrome is now a Lucide glyph; these are not an
+        // oversight, so please do not "finish the job" here.
         const flags = {
             'en': '🇬🇧', 'ja': '🇯🇵', 'ko': '🇰🇷', 'zh': '🇨🇳',
             'vi': '🇻🇳', 'fr': '🇫🇷', 'de': '🇩🇪', 'es': '🇪🇸',

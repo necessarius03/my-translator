@@ -33,11 +33,16 @@ export class WindowChromeController {
         sheet?.addEventListener('click', (e) => { if (e.target === sheet) toggleSheet(false); });
         this.toggleShortcutSheet = toggleSheet;
 
-        // Auto-hide toolbar toggle (✓ prefix reflects state; persists in localStorage)
+        // Auto-hide toolbar toggle (persists in localStorage). The tick is a real
+        // element pinned right by .more-menu-tick, not a character prefixed to the
+        // label — so the state is carried by a class and by aria-checked, and the
+        // label itself never shifts sideways as it toggles.
         const autoHideBtn = document.getElementById('btn-auto-hide');
         const renderAutoHide = () => {
             if (autoHideBtn) {
-                autoHideBtn.textContent = `${isAutoHideEnabled() ? '✓' : '  '} Auto-hide while translating`;
+                const on = isAutoHideEnabled();
+                autoHideBtn.classList.toggle('is-on', on);
+                autoHideBtn.setAttribute('aria-checked', String(on));
             }
         };
         renderAutoHide();
