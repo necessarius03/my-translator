@@ -37,6 +37,7 @@ Format: `## v<version> - <YYYY-MM-DD>` followed by content until the next `## v`
 - **Switching engines from the toolbar left the target language unsupported.** The picker showed a valid language while the session was still started with the old one.
 - **A failed audio-source switch left the app claiming to run** — the button kept reading "Stop" on a session that had stopped.
 - Six "info" notifications had no background and were nearly unreadable on either theme.
+- **Shrinking the window left it the same size.** The compact layout was applied but the frame was not, and once the app had recorded the startup size as if it were a chosen overlay size, shrinking restored that size forever. Overlay mode now has a real compact default (480×320) and only remembers a size you actually dragged it to. The app also opens at that size, rather than opening wide and jumping down.
 
 ### Important for this release
 
