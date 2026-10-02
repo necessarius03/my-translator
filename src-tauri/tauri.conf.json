@@ -46,16 +46,15 @@
     "macOS": {
       "entitlements": "Entitlements.plist",
       "frameworks": [],
-      "minimumSystemVersion": "13.0",
-      "signingIdentity": "Developer ID Application: Trong Phuc Nguyen (75EN938B6L)"
+      "minimumSystemVersion": "13.0"
     },
     "createUpdaterArtifacts": true
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ1MkNFMzAxRUQ2QUY2OEMKUldTTTltcnRBZU1zUmJrb1VIaExodVBLb2JnSjlmL25neWttRlI4clYzSlhPMG1Vd2RQS2ZkNkwK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJDQUEwNEM5ODZGODZBNTkKUldSWmF2aUd5UVNxTE5uVDdRTTg1S1BUVzJTcE01RWE0ak5uM0ZDSWx6UVVuRjZrcDB2Q2t2bmsK",
       "endpoints": [
-        "https://github.com/phuc-nt/my-translator/releases/latest/download/latest.json"
+        "https://github.com/necessarius03/my-translator/releases/latest/download/latest.json"
       ]
     }
   }

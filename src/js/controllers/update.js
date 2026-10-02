@@ -77,14 +77,19 @@ export class UpdateController {
     }
 
     bindAboutTab() {
-        // GitHub links
+        // Must stay the same repo as the updater endpoint in tauri.conf.json.
+        // These two drifted apart once already: the updater was repointed at this
+        // fork while these links still sent people to the upstream project, so the
+        // app fetched releases from one repo and filed issues against another.
+        const REPO = 'https://github.com/necessarius03/my-translator';
+
         document.getElementById('link-github')?.addEventListener('click', (e) => {
             e.preventDefault();
-            window.__TAURI__?.opener?.openUrl('https://github.com/phuc-nt/my-translator');
+            window.__TAURI__?.opener?.openUrl(REPO);
         });
         document.getElementById('link-issues')?.addEventListener('click', (e) => {
             e.preventDefault();
-            window.__TAURI__?.opener?.openUrl('https://github.com/phuc-nt/my-translator/issues');
+            window.__TAURI__?.opener?.openUrl(`${REPO}/issues`);
         });
 
         // Check for Updates button
