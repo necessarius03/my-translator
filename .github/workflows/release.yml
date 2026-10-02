@@ -35,11 +35,32 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Retried because bundle_dmg.sh is flaky on hosted runners. Observed on
+      # run 36960881924: the Intel job failed inside bundle_dmg.sh after the
+      # Rust build AND the .app bundle had both already succeeded, then passed
+      # on a rerun of the identical commit with nothing changed. Tauri discards
+      # the script's stderr, so there is nothing to diagnose from the log.
+      #
+      # This matters because the release job `needs` all three builds: without a
+      # retry, a coin flip on one of them loses the whole release and the tag
+      # has to be deleted and re-pushed.
+      #
+      # A retry is cheap — cargo's output is already up to date within the job,
+      # so a second attempt goes almost straight back to bundling. A volume left
+      # mounted by the failed attempt would poison the retry, so detach first.
       - name: Build Tauri app (unsigned)
+        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri build
+        run: |
+          for attempt in 1 2 3; do
+            hdiutil detach "/Volumes/MyTranslator" -force >/dev/null 2>&1 || true
+            if npm run tauri build; then exit 0; fi
+            echo "::warning::tauri build failed on attempt ${attempt}/3"
+            sleep 10
+          done
+          exit 1
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -74,11 +95,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Retried for the same reason as the Apple Silicon job above — this is
+      # the one that actually flaked.
       - name: Build Tauri app (Intel, unsigned)
+        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri build -- --target x86_64-apple-darwin
+        run: |
+          for attempt in 1 2 3; do
+            hdiutil detach "/Volumes/MyTranslator" -force >/dev/null 2>&1 || true
+            if npm run tauri build -- --target x86_64-apple-darwin; then exit 0; fi
+            echo "::warning::tauri build failed on attempt ${attempt}/3"
+            sleep 10
+          done
+          exit 1
 
       - name: Upload macOS Intel artifacts
         uses: actions/upload-artifact@v4
@@ -110,11 +141,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # No DMG here, so this job has not flaked — but the release still needs
+      # all three, so a transient NSIS/WiX hiccup would cost the same release.
+      # `shell: bash` is Git Bash, which the Windows runner ships.
       - name: Build Tauri app
+        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri build
+        run: |
+          for attempt in 1 2 3; do
+            if npm run tauri build; then exit 0; fi
+            echo "::warning::tauri build failed on attempt ${attempt}/3"
+            sleep 10
+          done
+          exit 1
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
