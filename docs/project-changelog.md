@@ -7,6 +7,47 @@ Format: `## v<version> - <YYYY-MM-DD>` followed by content until the next `## v`
 
 ---
 
+## v0.9.2 - 2026-10-02
+
+### Added — meeting mode
+
+- **Record a meeting, then summarise it.** A dedicated Meeting space keeps the whole transcript on screen (the Live overlay still trims to a glance-sized window), with a running clock and pause/resume that appends to the same session file rather than starting a new one.
+- **Summaries from OpenAI, Qwen (DashScope) or Google Gemini.** Pick the provider and model in Settings; the summary is written into the saved session file above the transcript, so reopening the file shows the conclusion first and the evidence under it.
+- **Transcribe-only meetings.** On engines that can honour it, live translation can be switched off so the meeting is recorded in the source language alone.
+
+### Added — on-screen subtitles
+
+- **A separate subtitle window** that floats over whatever you are watching, with click-through so it never steals a click. Unlock it to drag it somewhere else, lock it again to let the mouse pass. Font size, colour and the boxed background follow the same Display settings as the main window.
+
+### Changed — the whole interface was rebuilt
+
+- **One type scale and one spacing scale.** The stylesheet carried twenty font sizes (11px next to 11.5px next to 12px) and nineteen padding values; it now has nine and twelve, and nothing between them.
+- **No webfont.** The app used to fetch Inter from Google Fonts on every launch, which meant a flash of unstyled text and no typeface at all offline. It now uses the system face — SF Pro on macOS, Segoe UI Variable on Windows — and the font CDN is gone from the security policy entirely.
+- **Dark mode**, following the system setting.
+- **Native window material** (Mica on Windows 11, NSVisualEffect on macOS) where the OS grants it. If it is refused — Windows 10, for example — the app paints its own opaque background instead, so text never ends up sitting on your wallpaper.
+- **One icon set.** Fifty-five emoji were acting as interface icons: they ignore the theme, cannot take a colour, and render differently on macOS and Windows. They are gone, replaced where an icon still carries meaning by a single outline set drawn on one grid at one weight. Language flags stay — strip their colour and Vietnam and China become the same grey rectangle.
+- **Keyboard focus is visible everywhere**, and motion respects the system "reduce motion" setting.
+- `app.js` went from 3404 lines to 266, with each feature moved into its own controller. No behaviour change — this is why the features above could be built at all.
+
+### Fixed
+
+- **A meeting summary could silently cover only the last few lines.** The summary was built from the on-screen transcript, which is trimmed to the display limit. Saving any setting mid-meeting — switching the audio source, toggling subtitles — re-applied that limit and destroyed everything before it, so a thirty-minute meeting could be summarised from its final minute with nothing to indicate it. Summaries and "copy transcript" now read the saved record, which is never trimmed.
+- **Switching away from the Meeting tab mid-meeting** did the same thing to the scrollback. It no longer does, including while the meeting is paused.
+- **A glossary term containing a quote corrupted its own row** the next time Settings was opened, and could be truncated when re-saved.
+- **Switching engines from the toolbar left the target language unsupported.** The picker showed a valid language while the session was still started with the old one.
+- **A failed audio-source switch left the app claiming to run** — the button kept reading "Stop" on a session that had stopped.
+- Six "info" notifications had no background and were nearly unreadable on either theme.
+
+### Important for this release
+
+- **macOS builds are no longer signed.** macOS will say *"MyTranslator is damaged and can't be opened"* — it is not damaged; that is what Gatekeeper says about an app without a paid Apple Developer certificate. To open it:
+  ```
+  xattr -cr /Applications/MyTranslator.app
+  ```
+- **The update signing key has changed.** If you installed a build from the original `phuc-nt/my-translator`, its auto-updater will not accept releases from here. Download this one manually once; updates will work normally from then on.
+
+---
+
 ## v0.9.1 - 2026-07-11
 
 ### Fixed — engine picker no longer traps users
