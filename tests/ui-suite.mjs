@@ -714,6 +714,54 @@ try {
     ok(switchOutcome.isRunning === false, 'the app stops claiming to run');
     ok(switchOutcome.isStarting === false, 'and the re-entry guard is released');
 
+    // ── window modes ────────────────────────────────────────────────────────
+    // Regression: there was no default size for overlay mode, only for expanded.
+    // Shrinking with nothing in localStorage therefore removed the `expanded`
+    // class and never called setSize at all — the layout went compact while the
+    // window stayed at the expanded size. And the size of the mode being LEFT
+    // was saved on every toggle, so the first expand recorded the 900x500
+    // startup size as a chosen overlay size and shrinking restored that forever.
+    section('Window shrink actually shrinks the window');
+
+    const winState = () => page.evaluate(() => window.__mockWindow);
+
+    await page.evaluate(() => {
+        Object.keys(localStorage)
+            .filter((k) => k.startsWith('win_size') || k === 'window_mode')
+            .forEach((k) => localStorage.removeItem(k));
+        window.__mockWindow.size = { w: 900, h: 500 };
+        window.__mockWindow.setSizeCalls = [];
+    });
+
+    await page.evaluate(async () => {
+        const { applyWindowMode } = await import('/js/ui-shell.js');
+        await applyWindowMode('expanded');
+    });
+    await page.waitForTimeout(200);
+    const expanded = await winState();
+    ok(expanded.size.w === 900 && expanded.size.h === 640,
+        'expanding uses the expanded default', JSON.stringify(expanded.size));
+
+    await page.evaluate(async () => {
+        const { applyWindowMode } = await import('/js/ui-shell.js');
+        await applyWindowMode('overlay');
+    });
+    await page.waitForTimeout(200);
+    const shrunk = await winState();
+    ok(shrunk.setSizeCalls.length >= 2,
+        'shrinking actually calls setSize instead of silently doing nothing',
+        `${shrunk.setSizeCalls.length} calls`);
+    ok(shrunk.size.w < 600 && shrunk.size.h < 400,
+        'and the window ends up genuinely small', JSON.stringify(shrunk.size));
+    ok(!(await page.evaluate(() => document.body.classList.contains('expanded'))),
+        'the compact layout matches the compact window');
+
+    // A size the user never chose must not be remembered as a preference.
+    ok(
+        await page.evaluate(() => localStorage.getItem('win_size_v2_overlay')) === null,
+        'toggling modes does not record a size the user never picked',
+    );
+
     // ── subtitle overlay ────────────────────────────────────────────────────
     // The real overlay is a second transparent Tauri window, which browser dev
     // has no way to open — so these assert the MAIN-window half: that toggling

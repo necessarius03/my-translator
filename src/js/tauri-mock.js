@@ -64,6 +64,9 @@ if (!window.__TAURI__ && location.port === '3111') {
     // Subtitle overlay state, exposed on window so the UI suite can assert that
     // toggling actually reached the backend instead of only flipping a class.
     const mockSubtitle = { open: false, locked: true, lastLine: null, style: null };
+    // Starts at the real startup size from tauri.conf.json.
+    window.__mockWindow = { size: { w: 900, h: 500 }, setSizeCalls: [] };
+
     window.__mockSubtitle = mockSubtitle;
 
     // Records what the summariser was asked for, so the suite can assert the
@@ -177,12 +180,25 @@ if (!window.__TAURI__ && location.port === '3111') {
             open: async () => '/Users/dev/piper-models',
         },
         window: {
+            // applyWindowMode constructs one of these for setSize. Without it the
+            // constructor threw and the surrounding try/catch swallowed it, so
+            // every resize silently did nothing in browser dev.
+            LogicalSize: class { constructor(width, height) { this.width = width; this.height = height; } },
             getCurrentWindow: () => ({
                 setAlwaysOnTop: async () => {},
                 outerPosition: async () => ({ x: 100, y: 100 }),
-                innerSize: async () => ({ width: 800, height: 600 }),
+                // Window size is mock STATE, not a no-op: the overlay/expanded
+                // toggle is only observable through setSize, and a shrink that
+                // silently skipped the call is exactly the bug this records.
+                innerSize: async () => ({
+                    width: window.__mockWindow.size.w,
+                    height: window.__mockWindow.size.h,
+                }),
                 setPosition: async () => {},
-                setSize: async () => {},
+                setSize: async (s) => {
+                    window.__mockWindow.size = { w: s.width, h: s.height };
+                    window.__mockWindow.setSizeCalls.push({ w: s.width, h: s.height });
+                },
                 close: async () => { window.close(); },
                 minimize: async () => {},
                 toggleMaximize: async () => {},

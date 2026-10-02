@@ -170,6 +170,21 @@ export function anyMenuOpen() {
 
 const EXPANDED_DEFAULT = { w: 900, h: 640 };
 
+/* Overlay is the glance surface, so its default is genuinely small. Measured
+ * against the layout rather than guessed: the status row needs ~428px for the
+ * engine pill, the language pair and the source picker, and the fixed chrome
+ * (title bar 46 + status 42 + action row 61) is 149px tall, leaving room for
+ * about five transcript lines. Both are comfortably above the window's
+ * minWidth/minHeight of 380x220. */
+const OVERLAY_DEFAULT = { w: 480, h: 320 };
+
+/* Sizes are versioned. v1 wrote the size of the mode you were LEAVING on every
+ * toggle, so the first expand silently recorded the 900x500 startup size as if
+ * it were a chosen overlay size — after which shrinking restored 900x500
+ * forever and never looked small. Bumping the key abandons those values once;
+ * a size is now only stored when the user actually resizes. */
+const SIZE_KEY = (mode) => `win_size_v2_${mode}`;
+
 let appWindowRef = null;
 let windowMode = 'overlay';
 let applyingMode = false; // guard: programmatic setSize must not overwrite saved sizes
@@ -187,7 +202,7 @@ async function currentLogicalSize() {
 
 async function saveSizeForMode(mode) {
     try {
-        localStorage.setItem(`win_size_${mode}`, JSON.stringify(await currentLogicalSize()));
+        localStorage.setItem(SIZE_KEY(mode), JSON.stringify(await currentLogicalSize()));
     } catch { /* size save is best-effort */ }
 }
 
@@ -195,14 +210,20 @@ export async function applyWindowMode(mode) {
     if (!appWindowRef || (mode !== 'overlay' && mode !== 'expanded')) return;
     const { LogicalSize } = window.__TAURI__.window;
 
-    if (mode !== windowMode) await saveSizeForMode(windowMode); // remember size we leave behind
+    // Deliberately NOT saving the size of the mode being left: that is what
+    // recorded a size the user never chose. onResized below stores a size when
+    // the user actually drags the window, which is the only signal that means
+    // anything.
     windowMode = mode;
     localStorage.setItem('window_mode', mode);
     document.body.classList.toggle('expanded', mode === 'expanded');
 
     let target = null;
-    try { target = JSON.parse(localStorage.getItem(`win_size_${mode}`) || 'null'); } catch { }
-    if (!target && mode === 'expanded') target = EXPANDED_DEFAULT;
+    try { target = JSON.parse(localStorage.getItem(SIZE_KEY(mode)) || 'null'); } catch { }
+    // Every mode has a default. Without one for overlay, shrinking changed the
+    // CSS class and never called setSize at all, so the window stayed at the
+    // expanded size while the layout went compact.
+    if (!target) target = mode === 'expanded' ? EXPANDED_DEFAULT : OVERLAY_DEFAULT;
     if (target) {
         applyingMode = true;
         try { await appWindowRef.setSize(new LogicalSize(target.w, target.h)); } catch { }
@@ -225,10 +246,18 @@ export async function initWindowModes(appWindow) {
         await appWindow.onResized(() => {
             if (applyingMode) return;
             clearTimeout(resizeSaveTimer);
-            resizeSaveTimer = setTimeout(() => saveSizeForMode(windowMode), 500);
+            // Capture the mode NOW, not when the timer fires: toggling within
+            // the debounce window would otherwise file this size under the mode
+            // the user just switched to.
+            const modeAtResize = windowMode;
+            resizeSaveTimer = setTimeout(() => saveSizeForMode(modeAtResize), 500);
         });
     } catch { /* onResized unavailable — sizes just won't persist */ }
 
+    // Apply whichever mode was last used, including overlay. Previously only
+    // 'expanded' was restored, so a user who left the app shrunk reopened it at
+    // the 900x500 startup size with the compact layout — the same mismatch
+    // shrinking itself used to produce.
     const saved = localStorage.getItem('window_mode');
-    if (saved === 'expanded') await applyWindowMode('expanded');
+    await applyWindowMode(saved === 'expanded' ? 'expanded' : 'overlay');
 }
