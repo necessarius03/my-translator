@@ -7,9 +7,21 @@ export function esc(str) {
         .replace(/>/g, '&gt;');
 }
 
-/** Escape for use inside a double-quoted HTML attribute. */
+/**
+ * Escape for use inside a double-quoted HTML attribute.
+ *
+ * `&` goes FIRST, and it has to be here at all: without it the function is not
+ * idempotent and, worse, it passes pre-encoded text straight through — a stored
+ * value containing the literal characters `&quot;` came out unchanged, and the
+ * browser then decoded it into a real quote that closed the attribute. Escaping
+ * `&` first also stops the entities produced below from being re-escaped.
+ */
 export function escAttr(str) {
-    return String(str ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
 
 /**

@@ -633,7 +633,23 @@ export class TranscriptUI {
         }
     }
 
+    /**
+     * Meeting mode keeps the entire transcript on screen; the Live overlay keeps
+     * a few lines because it is a glance surface.
+     *
+     * This is deliberately NOT a `maxLines` value passed through configure().
+     * applySettings() calls configure() with the user's line limit on every
+     * settings change, so a meeting's override lived exactly until the next
+     * settings save — an audio-source switch or ⌘U mid-meeting silently threw
+     * away the scrollback. Keeping retention on its own axis means the two
+     * cannot fight.
+     */
+    setUnbounded(on) {
+        this._unbounded = !!on;
+    }
+
     _trimSegments() {
+        if (this._unbounded) return;
         let totalLen = 0;
         for (const seg of this.segments) {
             totalLen += (seg.translation || seg.original || '').length;

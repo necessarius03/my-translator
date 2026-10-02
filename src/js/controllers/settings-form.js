@@ -455,8 +455,11 @@ export class SettingsFormController {
         if (!list) return;
         const row = document.createElement('div');
         row.className = 'term-row';
-        row.innerHTML = `<input type="text" class="term-source" value="${source}" placeholder="Source" />` +
-            `<input type="text" class="term-target" value="${target}" placeholder="Target" />` +
+        // Escaped, like addGeneralRow below: these come back from saved settings,
+        // so a term containing a quote used to break out of the attribute and
+        // corrupt the row on the next Settings open.
+        row.innerHTML = `<input type="text" class="term-source" value="${escAttr(source)}" placeholder="Source" />` +
+            `<input type="text" class="term-target" value="${escAttr(target)}" placeholder="Target" />` +
             `<button type="button" class="btn-remove-term" title="Remove">×</button>`;
         row.querySelector('.btn-remove-term').addEventListener('click', () => row.remove());
         list.appendChild(row);

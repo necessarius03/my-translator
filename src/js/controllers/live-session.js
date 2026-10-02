@@ -118,12 +118,29 @@ export class LiveSessionController {
         settingsManager.save({ audio_source: source });
 
         if (wasRunning) {
-            this.pause().then(() => {
-                this.app.currentSource = source;
-                this.updateSourceButtons();
-                showToast(`Switched to ${label}`, 'success');
-                this.start();
-            });
+            // Restarting can fail (a provider refusing the new connection, say).
+            // Without this the rejection was unhandled and the app was left
+            // claiming to run: isRunning stayed true, the button still read
+            // "Stop" and the status row never reached `error`. Mirrors the
+            // Start button's own handler, including the re-entry guard — ⌘1/2/3
+            // reach this same path.
+            if (this.app.isStarting) return;
+            this.app.isStarting = true;
+            this.pause()
+                .then(async () => {
+                    this.app.currentSource = source;
+                    this.updateSourceButtons();
+                    showToast(`Switched to ${label}`, 'success');
+                    await this.start();
+                })
+                .catch((err) => {
+                    console.error('[Live] Source switch failed:', err);
+                    showToast(`Error: ${err}`, 'error');
+                    this.app.isRunning = false;
+                    this.updateStartButton();
+                    this.updateStatus('error');
+                })
+                .finally(() => { this.app.isStarting = false; });
         } else {
             this.app.currentSource = source;
             this.updateSourceButtons();

@@ -259,6 +259,16 @@ export class EngineUiController {
         this.refreshSourceLangs(mode);
     }
 
+    /**
+     * Narrow the target-language list to what the engine actually supports.
+     *
+     * The coerced value is PERSISTED. It used to be written to the <select> only,
+     * so switching engines from the toolbar pill — which saves translation_mode
+     * and nothing else — left settings.target_language on a language the new
+     * engine cannot produce: the UI said Vietnamese while the session was still
+     * started with the old code. (The source picker does not need this; qwen's
+     * session has a runtime fallback for an unsupported source.)
+     */
     refreshTargetLangs(mode) {
         const select = document.getElementById('select-target-lang');
         if (!select) return;
@@ -274,16 +284,25 @@ export class EngineUiController {
             select.innerHTML = OPENAI_LANGS
                 .map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
             select.value = OPENAI_LANGS.some(([c]) => c === current) ? current : 'vi';
+            this._persistTargetLang(select.value);
         } else if (mode === 'qwen') {
             if (!this.fullTargetLangHTML) this.fullTargetLangHTML = select.innerHTML;
             const langs = QWEN_LANGS;
             select.innerHTML = langs
                 .map((l) => `<option value="${l.code}">${l.name}</option>`).join('');
             select.value = langs.some((l) => l.code === current) ? current : 'vi';
+            this._persistTargetLang(select.value);
         } else if (this.fullTargetLangHTML) {
             select.innerHTML = this.fullTargetLangHTML;
             select.value = current || 'vi';
         }
+    }
+
+    /** Only writes when the value actually moved, so reopening Settings with a
+     *  supported language is not a settings mutation. */
+    _persistTargetLang(code) {
+        if (settingsManager.get().target_language === code) return;
+        settingsManager.save({ target_language: code });
     }
 
     refreshSourceLangs(mode) {

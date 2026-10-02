@@ -186,6 +186,80 @@ try {
     ok(restored === sonioxTargets, 'back to Soniox: full target list restored', `${restored} vs ${sonioxTargets}`);
     await shot('02-engine-ui');
 
+    // Regression: narrowing the target list coerces the <select>, and that
+    // coerced value has to be SAVED. It used to be written to the element only,
+    // so the UI showed a supported language while settings.target_language still
+    // held one the engine cannot produce — and that is the value a session is
+    // started with.
+    const savedTarget = () => page.evaluate(async () => {
+        const { settingsManager } = await import('/js/settings.js');
+        return settingsManager.get().target_language;
+    });
+
+    await setEngine('soniox');
+    await page.selectOption('#select-target-lang', 'th');   // Thai: Soniox only
+    await page.click('#btn-save-settings');
+    await page.waitForTimeout(300);
+    ok(await savedTarget() === 'th', 'Soniox keeps a language only it supports');
+
+    await openSettings();
+    await card('card-translation');
+    await setEngine('openai');                              // no Thai in its 13
+    ok(
+        await page.inputValue('#select-target-lang') === 'vi',
+        'OpenAI: the unsupported target falls back in the picker',
+    );
+    ok(
+        await savedTarget() === 'vi',
+        'and the fallback is persisted, so the session cannot start on Thai',
+    );
+    await setEngine('soniox');
+
+    // Regression: glossary rows are rebuilt from saved settings with innerHTML.
+    // addTermRow interpolated the stored text straight into value="..." with no
+    // escaping, so a term containing a quote closed the attribute on the next
+    // Settings open — the row rendered wrong and the term was corrupted when
+    // re-saved. The `&` matters too: escAttr did not escape it, which made it
+    // non-idempotent and let pre-encoded text decode back into a real quote.
+    section('Glossary terms survive quotes and ampersands (regression)');
+
+    const TRICKY_SRC = 'say "hello" & wave';
+    const TRICKY_TGT = 'nói "xin chào" & vẫy';
+
+    // Already inside Settings here (the engine section above leaves it open), so
+    // navigate via the home list rather than the overlay's gear button.
+    await settingsHome();
+    await card('card-translation');
+    await page.click('#btn-add-term');
+    await page.fill('#translation-terms-list .term-row:last-child .term-source', TRICKY_SRC);
+    await page.fill('#translation-terms-list .term-row:last-child .term-target', TRICKY_TGT);
+    await page.click('#btn-save-settings');
+    await page.waitForTimeout(300);
+
+    // Reopening rebuilds the rows from storage — the round trip that used to break.
+    await openSettings();
+    await card('card-translation');
+    const roundTrip = await page.evaluate(() => {
+        const row = [...document.querySelectorAll('#translation-terms-list .term-row')].pop();
+        return row ? {
+            source: row.querySelector('.term-source')?.value,
+            target: row.querySelector('.term-target')?.value,
+        } : null;
+    });
+    ok(roundTrip?.source === TRICKY_SRC, 'a term with a quote and an ampersand reloads intact', roundTrip?.source);
+    ok(roundTrip?.target === TRICKY_TGT, 'and so does its translation', roundTrip?.target);
+
+    ok(
+        await page.evaluate(async () => {
+            const { escAttr } = await import('/js/util/html.js');
+            // Idempotence: escaping twice must not double-encode, and a value that
+            // already contains the text "&quot;" must stay inert.
+            return escAttr(escAttr('a "b" & c')) === escAttr('a "b" & c').replace(/&/g, '&amp;')
+                && !escAttr('&quot;').includes('"');
+        }),
+        'escAttr escapes & first, so it is idempotent and neutralises pre-encoded input',
+    );
+
     // ── settings cards ──────────────────────────────────────────────────────
     section('Settings cards (SettingsFormController)');
     await settingsHome();
@@ -472,12 +546,17 @@ try {
 
     const summaryBody = () => page.locator('#meeting-summary-body');
 
-    // Transcript to summarise. Goes through TranscriptUI, the same path a real
-    // session uses, so getPlainText() sees it exactly as it would live.
-    await page.evaluate(() => {
+    // Transcript to summarise. Every engine session feeds BOTH sinks for each
+    // segment — TranscriptUI for the screen and sessionStore for the record —
+    // so the seed has to do the same or it is not the path a real session takes.
+    // The summary reads the store, because the on-screen buffer is a window that
+    // gets trimmed; seeding only the UI would pass while the real feature breaks.
+    await page.evaluate(async () => {
         const ui = window.__app.transcriptUI;
+        const { sessionStore } = await import('/js/session-store.js');
         ui.addOriginal('We should ship macOS first.');
         ui.addTranslation('Nên phát hành bản macOS trước.');
+        sessionStore.addSegment('We should ship macOS first.', 'Nên phát hành bản macOS trước.');
     });
 
     // No key yet: the failure has to be visible and the transcript untouched.
@@ -537,7 +616,103 @@ try {
     ok(await page.locator('#meeting-stream').isVisible(), 'switching back shows the transcript');
     ok(!(await page.locator('#meeting-summary').isVisible()), 'and hides the summary');
 
+    // ── the transcript survives everything that touches settings ────────────
+    // Regression: the summary used to be built from the ON-SCREEN buffer, which
+    // TranscriptUI trims destructively down to the user's line limit. Meeting
+    // mode lifted that limit, but applySettings() re-applied it on every
+    // settings save — so saving anything mid-meeting (an audio-source switch,
+    // a subtitle toggle) silently deleted the start of the transcript and the
+    // summary then covered only the tail, with nothing on screen to say so.
+    section('Meeting transcript survives a settings save (regression)');
+
+    // Far more than the 5-line window can hold: ~40 segments against a limit of
+    // 5 lines x 160 chars, so a trim would certainly drop the first line.
+    await page.evaluate(async () => {
+        const { sessionStore } = await import('/js/session-store.js');
+        const ui = window.__app.transcriptUI;
+        for (let i = 0; i < 40; i++) {
+            ui.addOriginal(`Line ${i} of the meeting, long enough to matter.`);
+            ui.addTranslation(`Dòng ${i} của cuộc họp, đủ dài để tính.`);
+            sessionStore.addSegment(
+                `Line ${i} of the meeting, long enough to matter.`,
+                `Dòng ${i} của cuộc họp, đủ dài để tính.`,
+            );
+        }
+    });
+
+    // The exact trigger from the bug report: a settings save while the meeting
+    // is open. It runs applySettings(), which reconfigures TranscriptUI.
+    await page.evaluate(async () => {
+        const { settingsManager } = await import('/js/settings.js');
+        settingsManager.save({ audio_source: 'microphone' });
+    });
+    await page.waitForTimeout(300);
+
+    const firstLineOnScreen = () => page.evaluate(() =>
+        window.__app.transcriptUI.getPlainText().includes('Line 0 of the meeting'));
+
+    ok(
+        await firstLineOnScreen(),
+        'a settings save mid-meeting does not trim the start of the transcript',
+    );
+
+    // Leaving the tab is not ending the meeting either.
+    await activity('library');
+    await activity('meeting');
+    ok(
+        await firstLineOnScreen(),
+        'and neither does switching tabs while the meeting is open',
+    );
+
+    await page.evaluate(() => { window.__mockSummary.lastRequest = null; });
+    await page.evaluate(() => document.getElementById('btn-meeting-resummarize').click());
+    await page.waitForTimeout(400);
+    const whole = await page.evaluate(() => window.__mockSummary.lastRequest);
+    ok(
+        (whole?.transcript || '').includes('Line 0 of the meeting'),
+        'the summary is built from the whole meeting, not just the tail',
+    );
+
     await activity('live');
+
+    // ── a failed source switch must not leave the app claiming to run ───────
+    // Regression: setSource() restarted the session with `.then()` and no
+    // `.catch()`. If start() rejected — a provider refusing the new connection —
+    // the rejection went unhandled and isRunning stayed true, so the button kept
+    // reading "Stop" on a session that was not running. ⌘1/⌘2/⌘3 share this path.
+    section('A failed source switch fails visibly (regression)');
+
+    const switchOutcome = await page.evaluate(async () => {
+        const live = window.__app.live;
+        const realStart = live.start.bind(live);
+        const realPause = live.pause.bind(live);
+        live.pause = async () => {};
+        live.start = async () => { throw new Error('provider refused'); };
+        window.__app.isRunning = true;
+
+        let unhandled = null;
+        const onRejection = (e) => { unhandled = String(e.reason); };
+        window.addEventListener('unhandledrejection', onRejection);
+
+        // The handler logs the failure on purpose; silence it here so an EXPECTED
+        // error does not land in the suite's console channel and mask a real one.
+        const realError = console.error;
+        console.error = () => {};
+
+        live.setSource('microphone');
+        await new Promise((r) => setTimeout(r, 400));
+
+        console.error = realError;
+        window.removeEventListener('unhandledrejection', onRejection);
+        const out = { unhandled, isRunning: window.__app.isRunning, isStarting: window.__app.isStarting };
+        live.start = realStart;
+        live.pause = realPause;
+        return out;
+    });
+
+    ok(switchOutcome.unhandled === null, 'the rejection is handled, not thrown into the void', switchOutcome.unhandled || '');
+    ok(switchOutcome.isRunning === false, 'the app stops claiming to run');
+    ok(switchOutcome.isStarting === false, 'and the re-entry guard is released');
 
     // ── subtitle overlay ────────────────────────────────────────────────────
     // The real overlay is a second transparent Tauri window, which browser dev

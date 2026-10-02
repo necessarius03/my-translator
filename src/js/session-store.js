@@ -181,6 +181,28 @@ export class SessionStore {
 
     // All chunks that should be serialized, including the still-open live chunk
     // (kept ended_at: null) when it has segments. Never mutates this.chunks.
+    /**
+     * The whole transcript as plain text, in the same shape
+     * TranscriptUI.getPlainText() returns — but read from the record instead of
+     * from the screen.
+     *
+     * The on-screen buffer is a WINDOW, not the transcript: _trimSegments()
+     * destructively drops the oldest segments once the user's line limit is
+     * passed. Anything that must cover the whole session — a summary, "copy
+     * transcript" — has to come from here, because this is never trimmed.
+     */
+    getPlainText() {
+        const lines = [];
+        for (const chunk of this._allChunks()) {
+            for (const seg of chunk.segments) {
+                if (seg.src) lines.push(seg.src);
+                if (seg.tgt) lines.push(seg.tgt);
+                if (seg.src || seg.tgt) lines.push('');
+            }
+        }
+        return lines.join('\n').trim();
+    }
+
     _allChunks() {
         if (this.currentChunk && this.currentChunk.segments.length > 0) {
             return [...this.chunks, this.currentChunk];

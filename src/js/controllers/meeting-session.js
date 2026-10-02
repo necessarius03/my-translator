@@ -110,9 +110,9 @@ export class MeetingController {
 
         // The Live overlay trims to the last few lines because it is a glance
         // surface. A meeting is read by scrolling back, so nothing is trimmed
-        // here. (The saved file was never affected either way — sessionLog is
-        // kept whole — this only governs what stays on screen.)
-        this.app.transcriptUI.configure({ maxLines: 100000 });
+        // here. This governs only what stays on SCREEN — the saved file and the
+        // summary both come from sessionStore, which is never trimmed.
+        this.app.transcriptUI.setUnbounded(true);
 
         this.syncEngineRow();
         this.updateButtons();
@@ -132,8 +132,15 @@ export class MeetingController {
             home.insertBefore(node, home.querySelector('.live-action-row'));
         }
 
-        // Restore the user's line limit for the Live overlay.
-        this.app.transcriptUI.configure({ maxLines: settingsManager.get().max_lines || 5 });
+        // Leaving the tab is not the same as ending the meeting. While one is
+        // still open — including while paused — the transcript stays whole, or
+        // glancing at Library mid-meeting would destroy the scrollback the
+        // meeting view exists to provide. sessionKind is 'meeting' from start()
+        // until stopSession(), which is exactly that window; isRunning is not,
+        // because pause() clears it.
+        if (this.app.sessionKind !== 'meeting') {
+            this.app.transcriptUI.setUnbounded(false);
+        }
     }
 
     /* ── The live-translate switch ────────────────────────── */
@@ -260,7 +267,8 @@ export class MeetingController {
     }
 
     async copy() {
-        const text = this.app.transcriptUI.getPlainText();
+        // From the record, not the screen: the on-screen buffer is a window.
+        const text = sessionStore.getPlainText();
         if (!text) {
             showToast('Nothing to copy yet', 'info');
             return;
@@ -313,7 +321,10 @@ export class MeetingController {
             return;
         }
 
-        const transcript = this.app.transcriptUI.getPlainText();
+        // Must be the full record. Reading the on-screen buffer here meant any
+        // settings save during a long meeting silently shortened the transcript
+        // the summary was built from, with nothing on screen to say so.
+        const transcript = sessionStore.getPlainText();
         if (!transcript.trim()) {
             showToast('No transcript to summarise', 'info');
             return;
