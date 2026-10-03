@@ -7,6 +7,18 @@ Format: `## v<version> - <YYYY-MM-DD>` followed by content until the next `## v`
 
 ---
 
+## v0.9.4 - 2026-10-03
+
+### Added
+
+- **Turn on-screen subtitles on and off in Settings.** Settings → On-screen subtitles now has a *Show on-screen subtitles* switch. Until now the strip at the bottom of the screen could only be closed with the CC button on the Live toolbar or Ctrl+U, neither of which is on the Meeting tab. All three stay in step.
+
+### Reminder
+
+- **macOS builds are unsigned.** If macOS says the app is "damaged", run `xattr -cr /Applications/MyTranslator.app`.
+
+---
+
 ## v0.9.3 - 2026-10-03
 
 ### Changed — meeting mode
