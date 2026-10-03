@@ -7,6 +7,26 @@ Format: `## v<version> - <YYYY-MM-DD>` followed by content until the next `## v`
 
 ---
 
+## v0.9.3 - 2026-10-03
+
+### Changed — meeting mode
+
+- **Ending a meeting no longer summarises it.** *End meeting* stops and saves; **Summarise** is its own button, pressed only when you want it. Plenty of meetings only need the transcript — copy it and summarise it wherever you like. The "Summarise automatically" setting is gone.
+- **Copy and Summarise keep working after End.** Ending used to clear the record straight away, so *Copy* found nothing. A summary made after End is saved into that meeting's own file.
+- **Clear is on the Meeting tab.** It used to exist only in the Live tab's menu. Clearing a paused meeting ends and saves it first, so nothing is lost; starting a new meeting clears the previous one off screen.
+
+### Fixed
+
+- **Transcribe-only meetings recorded nothing.** With *Translate live* off, lines never appeared, the segment count stayed at zero and the saved file was empty. They now show and save as they are spoken.
+- **Speech already in the target language disappeared.** Setting the same language on both sides (ja→ja), or someone speaking Vietnamese while translating auto→Vietnamese, left empty "Speaker 1:" labels and no text. That speech is now shown and saved as it is; a same-language pair is simply recorded without translating. Third-language speech in two-way mode had the same problem and is fixed too.
+- **The meeting clock could stand still while recording** — when the meeting was started with Ctrl+Enter, or after a session had been stopped from the Live tab. It now runs whenever a meeting is recording, and Ctrl+Enter on the Meeting tab starts and ends a meeting like the button does.
+
+### Reminder
+
+- **macOS builds are unsigned.** If macOS says the app is "damaged", run `xattr -cr /Applications/MyTranslator.app`.
+
+---
+
 ## v0.9.2 - 2026-10-02
 
 ### Added — meeting mode
