@@ -209,6 +209,8 @@ class App {
         // Subtitle overlay reads its look from the same settings; push the
         // change straight through so the user sees it without reopening.
         this.subtitle?.applySettings();
+        // The on/off switch lives in Settings too, not just the Live toolbar.
+        this.subtitle?.syncEnabled();
 
         // Meeting mode's live-translate switch is only offered for engines that
         // can actually honour it, so an engine change in Settings has to

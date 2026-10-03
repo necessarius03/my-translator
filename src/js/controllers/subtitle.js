@@ -38,13 +38,8 @@ export class SubtitleController {
 
     /** Reopen on launch if the user left it on. Failures are non-fatal. */
     async restoreOnStartup() {
-        if (settingsManager.get().subtitle_enabled) {
-            try {
-                await this.show();
-            } catch (err) {
-                console.error('[Subtitle] restore failed:', err);
-            }
-        }
+        // Same path as the Settings checkbox, so the two cannot both open it.
+        await this.syncEnabled();
     }
 
     styleFromSettings() {
@@ -55,6 +50,29 @@ export class SubtitleController {
             boxed: !!s.subtitle_boxed,
             hold_ms: s.subtitle_hold_ms ?? 5000,
         };
+    }
+
+    /**
+     * Follow the Settings checkbox. show()/hide() save subtitle_enabled
+     * themselves, which lands back here already matching — so no loop. The
+     * busy flag covers the await inside show(): other saves in that window
+     * would otherwise open the window twice.
+     */
+    async syncEnabled() {
+        const want = !!settingsManager.get().subtitle_enabled;
+        if (want === this.open || this._syncing) return;
+        this._syncing = true;
+        try {
+            if (want) await this.show();
+            else await this.hide();
+        } catch (err) {
+            console.error('[Subtitle] sync failed:', err);
+            showToast(`Subtitles: ${err}`, 'error');
+            // Record what actually happened, or every later save would retry.
+            if (want) settingsManager.save({ subtitle_enabled: false });
+        } finally {
+            this._syncing = false;
+        }
     }
 
     async toggle() {
@@ -133,6 +151,9 @@ export class SubtitleController {
         }
         const reset = document.getElementById('btn-subtitle-reset');
         if (reset) reset.disabled = !this.open;
+        // ⌘U and the toolbar button change this too; keep the Settings box honest.
+        const check = document.getElementById('check-subtitle-enabled');
+        if (check) check.checked = this.open;
     }
 
     /* ── Cue plumbing ────────────────────────────────────────── */

@@ -260,6 +260,8 @@ export class SettingsFormController {
         setVal('input-summary-prompt', s.summary_prompt || '');
         this.syncSummarySections();
 
+        const subOn = document.getElementById('check-subtitle-enabled');
+        if (subOn) subOn.checked = !!s.subtitle_enabled;
         const subOrig = document.getElementById('check-subtitle-original');
         if (subOrig) subOrig.checked = s.subtitle_show_original !== false;
         const subBoxed = document.getElementById('check-subtitle-boxed');
@@ -374,6 +376,7 @@ export class SettingsFormController {
             show_original: document.getElementById('check-show-original').checked,
             subtitle_font_size: parseInt(document.getElementById('range-subtitle-font')?.value || 30, 10),
             subtitle_hold_ms: parseInt(document.getElementById('range-subtitle-hold')?.value || 5, 10) * 1000,
+            subtitle_enabled: document.getElementById('check-subtitle-enabled')?.checked || false,
             subtitle_show_original: document.getElementById('check-subtitle-original')?.checked !== false,
             subtitle_boxed: document.getElementById('check-subtitle-boxed')?.checked || false,
             summary_provider: document.getElementById('select-summary-provider')?.value || 'openai',
