@@ -405,7 +405,9 @@
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         </button>
+        <button id="btn-meeting-summarize" class="tts-action-btn" title="Summarise the transcript" type="button">Summarise</button>
         <button id="btn-meeting-copy" class="tts-action-btn" title="Copy the transcript">⧉ Copy</button>
+        <button id="btn-meeting-clear" class="tts-action-btn" title="Clear the screen and start a fresh meeting" type="button">Clear</button>
         <div class="toolbar-spacer"></div>
         <button id="btn-meeting-open-dir" class="tts-action-btn" title="Open the transcripts folder"><svg class="ic ic-sm" viewBox="0 0 24 24"><use href="#i-folder" /></svg></button>
       </div>
@@ -896,13 +898,6 @@
           <input type="text" id="input-summary-language" placeholder="English" autocomplete="off" />
         </div>
 
-        <div class="settings-section">
-          <label class="checkbox-option">
-            <input type="checkbox" id="check-summary-auto" checked />
-            <span class="checkbox-label">Summarise automatically when a meeting ends</span>
-          </label>
-          <p class="hint">Switch off to trigger it yourself and keep token spend under control.</p>
-        </div>
 
         <div class="settings-section">
           <span class="field-label">Custom summary instructions</span>

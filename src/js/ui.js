@@ -178,6 +178,30 @@ export class TranscriptUI {
     }
 
     /**
+     * Add a finalized line that will never get a translation (meeting mode,
+     * transcribe only). It goes in as the segment's main text: an 'original'
+     * segment would be hidden in single view and dropped as stale after 10s,
+     * both of which assume a translation is on its way.
+     */
+    addTranscript(text, speaker, language) {
+        this._removeListening();
+        const seg = {
+            original: '',
+            translation: text,
+            status: 'translated',
+            speaker: speaker || null,
+            language: language || null,
+            confidence: this.lastConfidence,
+            createdAt: Date.now(),
+        };
+        this.segments.push(seg);
+        this.sessionLog.push({ ...seg });
+        if (speaker) this.currentSpeaker = speaker;
+        if (language) this.currentLanguage = language;
+        this._render();
+    }
+
+    /**
      * Apply translation to the oldest untranslated segment
      */
     addTranslation(text) {

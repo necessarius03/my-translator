@@ -11,14 +11,31 @@ export class SonioxSession {
         // Soniox emits original + translation as separate finals; we FIFO-pair
         // them into the session store so each saved segment has both texts.
         this.originalQueue = [];
+        // Set per start(): this connection asked for no translation.
+        this.transcribeOnly = false;
         this.wireCallbacks();
     }
 
     wireCallbacks() {
+        // A line no translation will ever arrive for is final as it stands and
+        // goes straight into the record — it must not sit in the FIFO.
+        const addUntranslated = (text, speaker, language) => {
+            this.app.transcriptUI.addTranscript(text, speaker, language);
+            sessionStore.addSegment(text, '');
+        };
+
         sonioxClient.onOriginal = (text, speaker, language) => {
+            if (this.transcribeOnly) {
+                addUntranslated(text, speaker, language);
+                return;
+            }
             this.app.transcriptUI.addOriginal(text, speaker, language);
             this.originalQueue.push(text);
         };
+
+        // Speech already in the target language, or a third language in
+        // two-way mode: Soniox marks it as never to be translated.
+        sonioxClient.onUntranslated = addUntranslated;
 
         sonioxClient.onTranslation = (text) => {
             this.app.transcriptUI.addTranslation(text);
@@ -56,7 +73,12 @@ export class SonioxSession {
         // Meeting mode can ask for a transcript with no translation. Soniox
         // does that by simply omitting the translation block, so the flag
         // travels as an empty target language rather than a new code path.
-        const transcribeOnly = !!this.app.transcribeOnly;
+        // Translating a language into itself (ja→ja) is the same request.
+        const source = settings.source_language;
+        const sameLanguage = (settings.translation_type || 'one_way') === 'one_way'
+            && source && source !== 'auto' && source === settings.target_language;
+        const transcribeOnly = !!this.app.transcribeOnly || sameLanguage;
+        this.transcribeOnly = transcribeOnly;
 
         sonioxClient.connect({
             apiKey: settings.soniox_api_key,

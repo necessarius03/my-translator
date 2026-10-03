@@ -258,8 +258,6 @@ export class SettingsFormController {
         setVal('input-gemini-key', s.gemini_api_key || '');
         setVal('input-summary-language', s.summary_language || 'English');
         setVal('input-summary-prompt', s.summary_prompt || '');
-        const autoSum = document.getElementById('check-summary-auto');
-        if (autoSum) autoSum.checked = s.summary_auto !== false;
         this.syncSummarySections();
 
         const subOrig = document.getElementById('check-subtitle-original');
@@ -383,7 +381,6 @@ export class SettingsFormController {
             gemini_api_key: document.getElementById('input-gemini-key')?.value.trim() || '',
             summary_language: document.getElementById('input-summary-language')?.value.trim() || 'English',
             summary_prompt: document.getElementById('input-summary-prompt')?.value || '',
-            summary_auto: document.getElementById('check-summary-auto')?.checked !== false,
             custom_context: null,
         };
 

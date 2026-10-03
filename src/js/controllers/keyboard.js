@@ -1,5 +1,6 @@
 /** Global keyboard shortcuts. Bound once at startup against the App root. */
 import { showToast } from '../util/toast.js';
+import { getActivity } from '../ui-shell.js';
 
 export function bindKeyboardShortcuts(app) {
     document.addEventListener('keydown', (e) => {
@@ -12,6 +13,12 @@ export function bindKeyboardShortcuts(app) {
         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
             e.preventDefault();
             if (app.isStarting) return;
+            // On the Meeting tab this is the meeting's own Start / End, so the
+            // session is tagged a meeting and its clock runs.
+            if (getActivity() === 'meeting') {
+                app.meeting.toggleRecording();
+                return;
+            }
             (async () => {
                 try {
                     if (app.isRunning) {

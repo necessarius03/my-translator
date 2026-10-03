@@ -194,6 +194,12 @@
   flex-shrink: 0;
 }
 
+.meeting-actions .tts-action-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
 /* ─── Summary ────────────────────────────────────────────
    The summary is the artefact people come back for; the
    transcript is the evidence behind it. So the summary opens

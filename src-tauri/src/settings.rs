@@ -134,7 +134,8 @@ pub struct Settings {
     /// Overrides the built-in instructions when non-empty.
     #[serde(default)]
     pub summary_prompt: String,
-    /// Summarise automatically when a meeting ends.
+    /// No longer read: ending a meeting never summarises, Summarise is its own
+    /// button. Kept so settings files that carry it still load.
     #[serde(default = "default_true")]
     pub summary_auto: bool,
 }

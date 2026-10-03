@@ -4,8 +4,10 @@
  * A meeting IS a live session — same engines, same capture, same store. What
  * differs is presentation (a clock instead of a floating overlay, no line
  * trimming, no auto-hiding chrome), one decision (translate while recording, or
- * just take the transcript down), and what happens at the end: the transcript
- * gets summarised and the summary is saved into the same session file.
+ * just take the transcript down), and what can happen after it: the transcript
+ * can be summarised, and the summary is saved into the same session file.
+ * Ending and summarising are separate actions — plenty of meetings only need
+ * the transcript.
  *
  * The transcript element is MOVED between the Live panel and this one rather
  * than duplicated. One DOM node means one TranscriptUI, which means there is no
@@ -14,7 +16,7 @@
  */
 
 import { settingsManager } from '../settings.js';
-import { sessionStore } from '../session-store.js';
+import { SessionStore, sessionStore } from '../session-store.js';
 import { showToast } from '../util/toast.js';
 import { esc, renderSummaryMarkdown } from '../util/html.js';
 
@@ -61,12 +63,19 @@ export class MeetingController {
         this.view = 'transcript';
         this.summarizing = false;
         this.lastRun = null;     // provider/model/timing of the last summary
+        this.summary = '';       // the summary on screen, for Copy
+        // The meeting last ended with End. stopSession() resets sessionStore for
+        // the next recording, so without this Copy and Summarise would have
+        // nothing to work on the moment the meeting was over.
+        this.ended = null;       // { id, text }
     }
 
     bindEvents() {
         document.getElementById('btn-meeting-start')?.addEventListener('click', () => this.toggleRecording());
         document.getElementById('btn-meeting-pause')?.addEventListener('click', () => this.pause());
         document.getElementById('btn-meeting-copy')?.addEventListener('click', () => this.copy());
+        document.getElementById('btn-meeting-summarize')?.addEventListener('click', () => this.summarize());
+        document.getElementById('btn-meeting-clear')?.addEventListener('click', () => this.clear());
         document.getElementById('btn-meeting-open-dir')?.addEventListener('click', async () => {
             try {
                 await invoke('open_transcript_dir');
@@ -92,11 +101,11 @@ export class MeetingController {
         });
 
         document.getElementById('btn-meeting-copy-summary')?.addEventListener('click', async () => {
-            if (!sessionStore.summary) {
+            if (!this.summary) {
                 showToast('No summary yet', 'info');
                 return;
             }
-            await navigator.clipboard.writeText(sessionStore.summary);
+            await navigator.clipboard.writeText(this.summary);
             showToast('Summary copied', 'success');
         });
     }
@@ -216,19 +225,18 @@ export class MeetingController {
             this.app.transcribeOnly = !this.translateLive;
             sessionStore.kind = 'meeting';
 
-            // A new meeting starts from a clean sheet: the previous summary
-            // belongs to the previous session file, not this one.
+            // A new meeting starts from a clean sheet: the previous transcript
+            // and summary belong to the previous session file, not this one.
+            // (Resuming from Pause is the same meeting — nothing was ended.)
+            if (this.ended) this.clearScreen();
             this.lastRun = null;
+            this.summary = '';
             const tabs = document.getElementById('meeting-views');
             if (tabs) tabs.hidden = true;
             this.setView('transcript');
 
+            // The clock starts itself once capture is running (syncClock).
             await this.app.live.start();
-
-            if (this.app.isRunning) {
-                if (!this.startedAt) this.startedAt = Date.now();
-                this.startTicker();
-            }
         } catch (err) {
             console.error('[Meeting] start failed:', err);
             showToast(`Error: ${err}`, 'error');
@@ -246,29 +254,77 @@ export class MeetingController {
     }
 
     /**
-     * Stop capture, summarise, then finalise. Order matters: stopSession()
-     * resets the store for the next recording, so the summary — which reads the
-     * transcript and writes into the same session file — has to run first.
+     * Stop capture and finalise the session file. Summarising is a separate
+     * button; the transcript stays on screen so it can still be copied.
      */
     async endMeeting() {
         this.stopTicker();
         await this.app.live.pause();
         this.updateButtons();
 
-        if (settingsManager.get().summary_auto !== false) {
-            await this.summarize();
-        }
+        // Remember the meeting before stopSession() resets the store for the
+        // next recording. If the save fails the store is left as it is, and
+        // record() keeps reading from it instead.
+        const ended = sessionStore.isEmpty()
+            ? null
+            : { id: sessionStore.id, text: sessionStore.getPlainText() };
 
         await this.app.live.stopSession();
+        if (ended) this.ended = ended;
         this.startedAt = null;
         this.elapsedMs = 0;
         this.renderClock();
         this.updateButtons();
     }
 
+    /**
+     * Wipe the screen and start over. A meeting still open (paused) is ended
+     * first, so Clear never throws a transcript away — it is in the Library.
+     */
+    async clear() {
+        if (this.app.isRunning || this.app.isStarting || this.summarizing) return;
+        if (!sessionStore.isEmpty()) {
+            await this.endMeeting();
+            // Save failed: keep everything on screen so nothing looks lost.
+            if (!sessionStore.isEmpty()) return;
+        }
+        this.clearScreen();
+        this.updateButtons();
+    }
+
+    clearScreen() {
+        this.app.transcriptUI.clear();
+        this.app.transcriptUI.showPlaceholder();
+        this.app.recordingStartTime = null;
+        this.ended = null;
+        this.summary = '';
+        this.lastRun = null;
+        const tabs = document.getElementById('meeting-views');
+        if (tabs) tabs.hidden = true;
+        this.setView('transcript');
+        const body = document.getElementById('meeting-summary-body');
+        if (body) body.innerHTML = '';
+        this.startedAt = null;
+        this.elapsedMs = 0;
+        this.renderClock();
+    }
+
+    /** Copy and Summarise act on the open meeting, else the one last ended. */
+    hasRecord() {
+        return !sessionStore.isEmpty() || !!this.ended;
+    }
+
+    async record() {
+        if (!sessionStore.isEmpty()) return sessionStore;
+        if (this.ended) return SessionStore.resume(this.ended.id);
+        return null;
+    }
+
     async copy() {
         // From the record, not the screen: the on-screen buffer is a window.
-        const text = sessionStore.getPlainText();
+        const text = sessionStore.isEmpty()
+            ? (this.ended?.text || '')
+            : sessionStore.getPlainText();
         if (!text) {
             showToast('Nothing to copy yet', 'info');
             return;
@@ -316,7 +372,23 @@ export class MeetingController {
      */
     async summarize({ force = false } = {}) {
         if (this.summarizing) return;
-        if (sessionStore.summary && !force) {
+
+        // After End the session lives on disk only, so it is read back from
+        // there — the summary has to land in that same file.
+        let record;
+        try {
+            record = await this.record();
+        } catch (err) {
+            this.showSummaryError(`Could not open the saved meeting: ${err}`);
+            return;
+        }
+        if (!record) {
+            showToast('No transcript to summarise', 'info');
+            return;
+        }
+
+        if (record.summary && !force) {
+            this.summary = record.summary;
             this.renderSummary();
             return;
         }
@@ -324,7 +396,8 @@ export class MeetingController {
         // Must be the full record. Reading the on-screen buffer here meant any
         // settings save during a long meeting silently shortened the transcript
         // the summary was built from, with nothing on screen to say so.
-        const transcript = sessionStore.getPlainText();
+        const transcript = record.getPlainText();
+        const id = record.id;
         if (!transcript.trim()) {
             showToast('No transcript to summarise', 'info');
             return;
@@ -355,15 +428,25 @@ export class MeetingController {
                 },
             });
 
-            sessionStore.summary = res.text;
+            // End may have been pressed while this was in flight, which resets
+            // the shared store under us; the meeting is on disk by then.
+            if (record === sessionStore && sessionStore.id !== id) {
+                record = await SessionStore.resume(id);
+            }
+            record.summary = res.text;
             // The summary belongs to the session record, so it has to reach disk
             // in the same file as the transcript it describes.
-            sessionStore.markDirty();
-            await sessionStore.persist();
+            record.markDirty();
+            const saved = await record.persist();
 
+            this.summary = res.text;
             this.lastRun = res;
             this.renderSummary();
-            showToast('Summary ready', 'success');
+            if (saved === 'failed') {
+                showToast('Summary ready, but saving it failed — copy it to keep it', 'error');
+            } else {
+                showToast('Summary ready', 'success');
+            }
         } catch (err) {
             this.showSummaryError(String(err));
         } finally {
@@ -408,7 +491,7 @@ export class MeetingController {
         this.setView('summary');
 
         const body = document.getElementById('meeting-summary-body');
-        if (body) body.innerHTML = renderSummaryMarkdown(sessionStore.summary);
+        if (body) body.innerHTML = renderSummaryMarkdown(this.summary);
 
         const meta = document.getElementById('meeting-summary-meta');
         if (meta) {
@@ -426,8 +509,24 @@ export class MeetingController {
 
     /* ── Clock ────────────────────────────────────────────── */
 
+    /**
+     * Run the clock exactly while capture runs. Driven from updateButtons(),
+     * which every status change reaches, so the clock follows however capture
+     * started or stopped — this tab's buttons, Ctrl+Enter, the Live tab, a
+     * source switch, an engine error. Starting it only from start() left it
+     * frozen on every other path.
+     */
+    syncClock() {
+        // Only a meeting's time counts: a Live-tab session would otherwise
+        // leave its minutes on the next meeting's clock.
+        const running = this.app.isRunning && this.app.sessionKind === 'meeting';
+        if (running && !this.ticker) this.startTicker();
+        else if (!running && this.ticker) this.stopTicker();
+    }
+
     startTicker() {
         this.stopTicker();
+        this.startedAt = Date.now();
         this.ticker = setInterval(() => this.renderClock(), 1000);
         this.renderClock();
     }
@@ -459,11 +558,14 @@ export class MeetingController {
         if (meta) {
             const n = sessionStore.totalSegmentCount?.() ?? 0;
             if (!this.app.isRunning && n === 0) {
-                meta.textContent = 'Not started';
+                meta.textContent = this.ended ? 'Ended · saved to Library' : 'Not started';
             } else {
                 const s = settingsManager.get();
-                const pair = this.translateLive
-                    ? `${s.source_language || 'auto'}→${s.target_language || 'vi'}`
+                const src = s.source_language || 'auto';
+                const tgt = s.target_language || 'vi';
+                // ja→ja translates nothing; say what is actually happening.
+                const pair = this.translateLive && src !== tgt
+                    ? `${src}→${tgt}`
                     : 'transcript only';
                 meta.textContent = `${n} segments · ${pair}`;
             }
@@ -473,11 +575,11 @@ export class MeetingController {
     }
 
     updateButtons() {
+        this.syncClock();
+
         const label = document.getElementById('btn-meeting-label');
         if (label) {
-            label.textContent = this.app.isRunning
-                ? (settingsManager.get().summary_auto !== false ? 'End & summarise' : 'End')
-                : 'Start recording';
+            label.textContent = this.app.isRunning ? 'End meeting' : 'Start recording';
         }
 
         const start = document.getElementById('btn-meeting-start');
@@ -485,6 +587,17 @@ export class MeetingController {
 
         const pause = document.getElementById('btn-meeting-pause');
         if (pause) pause.disabled = !this.app.isRunning;
+
+        const sum = document.getElementById('btn-meeting-summarize');
+        if (sum) {
+            sum.disabled = this.summarizing || !this.hasRecord();
+            sum.textContent = this.summarizing ? 'Summarising…' : 'Summarise';
+        }
+
+        // Disabled while recording: clearing the screen under a live meeting
+        // would leave Copy and Summarise working on text no longer shown.
+        const clear = document.getElementById('btn-meeting-clear');
+        if (clear) clear.disabled = this.app.isRunning || this.summarizing;
 
         const resum = document.getElementById('btn-meeting-resummarize');
         if (resum) {

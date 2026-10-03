@@ -42,6 +42,7 @@ export class SonioxClient {
 
         // Callbacks
         this.onOriginal = null;       // (text, speaker, language) => {}
+        this.onUntranslated = null;   // (text, speaker, language) => {} — final, no translation coming
         this.onTranslation = null;    // (text) => {}
         this.onProvisional = null;    // (text, speaker, language) => {}
         this.onStatusChange = null;   // (status) => {}
@@ -269,6 +270,7 @@ export class SonioxClient {
         if (!data.tokens || data.tokens.length === 0) return;
 
         let originalText = '';
+        const finals = [];   // [{ kind: 'original' | 'untranslated', text }]
         let translationText = '';
         let provisionalText = '';
         let hasEnd = false;
@@ -283,38 +285,44 @@ export class SonioxClient {
                 continue;
             }
 
-            if (token.speaker && token.translation_status === 'original') {
+            // Without a translation block (meeting mode, transcribe only) tokens
+            // carry no translation_status at all. Anything that is not a
+            // translation is source speech.
+            const isTranslation = token.translation_status === 'translation';
+            // 'none' is speech Soniox will NOT translate: already in the target
+            // language (so every token when source = target, e.g. ja→ja), or a
+            // third language in two-way mode. No translation will follow, so it
+            // must not wait for one like an 'original' does.
+            const isUntranslated = token.translation_status === 'none';
+
+            if (token.speaker && !isTranslation) {
                 speaker = token.speaker;
             }
 
             // Capture language from original tokens
-            if (token.language && token.translation_status !== 'translation') {
+            if (token.language && !isTranslation) {
                 language = token.language;
             }
 
             // Track confidence scores for original final tokens
-            if (token.confidence !== undefined && token.is_final && token.translation_status === 'original') {
+            if (token.confidence !== undefined && token.is_final && !isTranslation) {
                 confidenceSum += token.confidence;
                 confidenceCount++;
             }
 
-            if (token.translation_status === 'original') {
-                if (token.is_final) {
-                    originalText += token.text;
-                } else {
-                    provisionalText += token.text;
-                }
-            } else if (token.translation_status === 'translation') {
+            if (isTranslation) {
                 if (token.is_final) {
                     translationText += token.text;
                 }
-            } else if (token.translation_status === 'none') {
-                // Third-language speech in two-way mode: treat as original (untranslated)
-                if (token.is_final) {
-                    originalText += token.text;
-                } else {
-                    provisionalText += token.text;
-                }
+            } else if (token.is_final) {
+                // Consecutive finals of one kind form one line, in spoken order.
+                const kind = isUntranslated ? 'untranslated' : 'original';
+                const last = finals[finals.length - 1];
+                if (last && last.kind === kind) last.text += token.text;
+                else finals.push({ kind, text: token.text });
+                originalText += token.text;
+            } else {
+                provisionalText += token.text;
             }
         }
 
@@ -324,9 +332,12 @@ export class SonioxClient {
             this.onConfidence?.(avgConfidence);
         }
 
-        // Emit finalized original text with speaker + language
-        if (originalText.trim()) {
-            this.onOriginal?.(originalText, speaker, language);
+        // Emit finalized source text with speaker + language: lines awaiting a
+        // translation, and lines that are final as they stand.
+        for (const { kind, text } of finals) {
+            if (!text.trim()) continue;
+            if (kind === 'untranslated') this.onUntranslated?.(text, speaker, language);
+            else this.onOriginal?.(text, speaker, language);
         }
 
         // Emit translation + store for context carryover
