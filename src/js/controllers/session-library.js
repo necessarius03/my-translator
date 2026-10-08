@@ -13,10 +13,11 @@ export class SessionLibraryController {
     }
 
     bindEvents() {
-        // Back from session viewer to session list
+        // Back from session viewer to session list. Reload rather than just
+        // unhide it, so a rename made in the viewer shows up in the list.
         document.getElementById('btn-session-back-to-list').addEventListener('click', () => {
-            document.getElementById('sessions-list-panel').style.display = '';
-            document.getElementById('session-viewer').style.display = 'none';
+            const q = document.getElementById('input-session-search')?.value || '';
+            this.show(q);
         });
 
         // Copy session content
@@ -51,6 +52,11 @@ export class SessionLibraryController {
             const newTitle = prompt('Rename session:', oldTitle);
             if (newTitle == null || newTitle === oldTitle) return;
             try {
+                // The active session is rewritten from memory on every autosave,
+                // so its in-memory title must change too or the rename gets undone.
+                if (cur.id === sessionStore.id) {
+                    sessionStore.title = newTitle.trim().slice(0, 200);
+                }
                 await invoke('update_session_title', { id: cur.id, title: newTitle });
                 if (titleEl) titleEl.textContent = newTitle;
                 showToast('Renamed', 'success');
