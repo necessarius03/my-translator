@@ -7,6 +7,18 @@ Format: `## v<version> - <YYYY-MM-DD>` followed by content until the next `## v`
 
 ---
 
+## v0.9.5 - 2026-10-08
+
+### Fixed
+
+- **Renamed sessions now show their new name in the Library list.** Renaming a session in the viewer saved the new name, but going Back still showed the old one until the Library tab was reopened. The list now reloads when you go Back. Renaming the session that is still recording also no longer gets undone by the next autosave.
+
+### Reminder
+
+- **macOS builds are unsigned.** If macOS says the app is "damaged", run `xattr -cr /Applications/MyTranslator.app`.
+
+---
+
 ## v0.9.4 - 2026-10-03
 
 ### Added
